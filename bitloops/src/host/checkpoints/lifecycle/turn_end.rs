@@ -238,6 +238,17 @@ pub(crate) fn handle_lifecycle_turn_end_for_repo_with_workspace_snapshot(
     );
     let model = resolve_interaction_model_from_bytes(&event.model, &transcript_data);
 
+    // Local {model, code} export -- see `super::code_export` for details.
+    // Independent of the interaction spool below: runs even when no spool
+    // is configured, and best-effort (never fails turn-end handling).
+    let code_export_files: Vec<String> = ctx
+        .modified_files
+        .iter()
+        .chain(ctx.new_files.iter())
+        .cloned()
+        .collect();
+    super::code_export::export_turn_code(repo_root, &model, &code_export_files);
+
     if let Some(spool) = resolve_interaction_spool(repo_root) {
         let (actor_id, actor_name, actor_email, actor_source) = interaction_actor_identity();
         let session = session_before_capture

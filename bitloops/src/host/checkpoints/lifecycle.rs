@@ -8,6 +8,7 @@ use anyhow::Result;
 mod adapter;
 pub(crate) mod canonical;
 mod capture;
+mod code_export;
 mod dispatch;
 mod git_workspace;
 mod handlers_session;
