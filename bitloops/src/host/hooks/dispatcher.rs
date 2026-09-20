@@ -739,6 +739,44 @@ fn enqueue_lifecycle_hook_from_hook(
     crate::host::checkpoints::lifecycle::spool::enqueue_lifecycle_job_hook_safe_at(&db_path, insert)
 }
 
+fn archive_code_for_turn_end_hook(
+    repo_root: &Path,
+    agent_name: &str,
+    hook_name: &str,
+    stdin: &str,
+) {
+    use crate::host::checkpoints::lifecycle::trace_code_export;
+
+    let Some(adapter) = lifecycle_adapter_for_enqueue_offset(agent_name) else {
+        trace_code_export(&format!("no lifecycle adapter for agent `{agent_name}`"));
+        return;
+    };
+    let event = match parse_lifecycle_event_for_enqueue_offset(
+        repo_root,
+        adapter.as_ref(),
+        hook_name,
+        stdin,
+    ) {
+        Ok(Some(event)) => event,
+        Ok(None) => {
+            trace_code_export(&format!("hook `{hook_name}` produced no lifecycle event"));
+            return;
+        }
+        Err(err) => {
+            trace_code_export(&format!("cannot parse hook `{hook_name}` input: {err:#}"));
+            return;
+        }
+    };
+    if event.event_type.as_ref() != Some(&LifecycleEventType::TurnEnd) {
+        return;
+    }
+    crate::host::checkpoints::lifecycle::export_turn_code_from_hook(
+        repo_root,
+        &event.model,
+        &event.session_ref,
+    );
+}
+
 fn route_or_enqueue_lifecycle_hook(
     repo_root: &Path,
     agent_name: &str,
@@ -747,6 +785,7 @@ fn route_or_enqueue_lifecycle_hook(
 ) -> Result<crate::host::checkpoints::lifecycle::adapters::HookCommandOutcome> {
     let mode = lifecycle_hook_dispatch_mode(agent_name, hook_name);
     if mode.is_async() {
+        archive_code_for_turn_end_hook(repo_root, agent_name, hook_name, stdin);
         enqueue_lifecycle_hook_from_hook(repo_root, agent_name, hook_name, stdin, mode)
             .map(|_| crate::host::checkpoints::lifecycle::adapters::HookCommandOutcome::default())
     } else {

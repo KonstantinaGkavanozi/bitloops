@@ -24,6 +24,7 @@ pub mod adapters;
 
 pub use adapter::LifecycleAgentAdapter;
 pub use capture::capture_pre_prompt_state;
+pub(crate) use code_export::{export_turn_code_from_hook, trace as trace_code_export};
 pub use dispatch::{dispatch_lifecycle_event, dispatch_lifecycle_event_for_repo};
 #[cfg(test)]
 pub(crate) use git_workspace::capture_workspace_snapshot_for_turn_end;

@@ -29,8 +29,10 @@ Each file contains:
 
 Behaviour worth knowing:
 
-- Only files that were **created or modified** in the turn are saved. Deleted files are not.
-- The **whole file** is saved, not a diff. Saving the same file in two turns gives two files (the timestamp keeps them apart).
+- Only files that were **created or modified** are saved. Deleted files are not.
+- The **whole file** is saved, not a diff.
+- A file is saved again only when its content **differs from its newest archived copy**. Bitloops reports every file that is still uncommitted at the end of each turn, so without this check the same unchanged files would be re-saved every turn. If a file changes and later goes back to an older version, that counts as a change and is saved again.
+- Each save gets its own timestamp, so older versions of a file are kept next to the newer ones.
 - Files that can't be read as text (binaries, files removed again) are silently skipped.
 - Archiving never blocks or fails the agent's turn. If a write fails, that file is skipped and nothing is reported.
 - If Bitloops cannot work out the model name, `"model"` is `"unknown"`.
@@ -44,8 +46,9 @@ Two optional environment variables:
 |---|---|
 | `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default: `~/Desktop/bitloops code` |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off. It is on by default. |
+| `BITLOOPS_CODE_EXPORT_TRACE` | Any non-empty value makes the archiver print to stderr which files it saw and why each was saved or skipped. For troubleshooting. |
 
-**Important:** the archiving code runs inside the `bitloops hooks ...` command that your agent launches at the end of a turn, not inside the background daemon. So the variables must be set in the environment of the **agent** (the terminal or app you start Claude Code, Cursor, etc. from), not just any shell.
+**How it runs:** at the end of each agent turn, the `bitloops hooks ...` command that your agent launches archives the changed files itself. It needs neither the daemon nor the database. Bitloops also queues the turn for its daemon, which archives too, but skips anything the hook already saved with the same content. So the variables must be set in the environment of the **agent** (the terminal or app you start Claude Code, Cursor, etc. from), not just any shell. If you also run the daemon, restart it after changing the variables or replacing the binary, because a running daemon keeps using the old ones.
 
 Setting them:
 
@@ -192,7 +195,7 @@ On unusual Linux targets (for example musl), the prebuilt DuckDB library doesn't
 2. In a repo where you ran `bitloops init`, ask your agent to create or change a file.
 3. When the turn ends, look in the export folder (default `~/Desktop/bitloops code/<repo name>/`). There should be a `.json` file for each changed file.
 
-The core logic (writing `{model, code}` files, the disable switch, the `unknown` model fallback) has three unit tests in `code_export.rs`. They pass on Windows when the file is built as its own small crate. The full flow with a real agent turn has not been confirmed yet.
+The core logic (writing `{model, code}` files, the disable switch, the `unknown` model fallback, skipping unchanged files) has unit tests in `code_export.rs`. They pass on Windows when the file is built as its own small crate. On Windows the hook-side archiving was also run by hand against a temporary folder: the first run saved every uncommitted file and a second run saved none. A full run with a real agent turn has not been confirmed yet.
 
 ## Troubleshooting
 
@@ -201,6 +204,9 @@ The core logic (writing `{model, code}` files, the disable switch, the `unknown`
   - Make sure `BITLOOPS_CODE_EXPORT_DISABLE` is not set.
   - Make sure you ran `bitloops init` in that repo.
   - Check the folder you set in `BITLOOPS_CODE_EXPORT_DIR`.
+  - Set `BITLOOPS_CODE_EXPORT_TRACE=1` in the agent's environment and look at the hook's stderr. It lists the changed files it found and says why each was saved or skipped.
+- **`configuring SQLite pragmas`, `locking protocol` or DuckDB "file is being used by another process" messages (Windows).** Bitloops' own database is locked by another Bitloops process, usually the running daemon. This can stop Bitloops from recording that turn in its history. It does not stop archiving, because the hook archives before it touches any database.
+- **The same unchanged files keep being saved again.** A daemon started before you replaced the binary is still running the old code. Stop it and start it again.
 - **`bitloops` is not recognized (Windows).** The installer changes PATH for new terminals only. Open a new one, or call `%USERPROFILE%\.bitloops\bin\bitloops.exe` directly.
 - **`Bitloops daemon did not become ready within 45 seconds` (Windows).** Starting the daemon in the background (`bitloops daemon start -d`, which the installer uses) can fail. Running `bitloops daemon start` in a terminal and leaving it open works. This does not affect archiving.
 - **`linker link.exe not found` or `link: extra operand` (Windows build).** Install the Visual Studio C++ Build Tools and build from PowerShell or a Native Tools prompt, not Git Bash.
