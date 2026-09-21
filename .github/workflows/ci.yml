@@ -20,7 +20,9 @@ jobs:
   test:
     name: Build and test (Ubuntu)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # A cold run compiles DuckDB and six test binaries before ~900s of tests.
+    # Generous until the cache is warm; drop it once runs are a few minutes.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
 
@@ -33,6 +35,10 @@ jobs:
           workspaces: . -> target
           shared-key: ci
           cache-workspace-crates: true
+          # Without this the cache is only written when the whole job passes,
+          # so a red test run leaves the next run compiling from scratch — and
+          # a slow cold run is what makes the job time out in the first place.
+          cache-on-failure: true
 
       # Catches anything that breaks the binary target itself — the bin name in
       # build.rs link args, CARGO_BIN_EXE_*, and so on.
