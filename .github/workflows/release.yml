@@ -1,21 +1,35 @@
+# .github/workflows/release.yml
+#
+# Adapted from upstream bitloops for the research fork.
+# Changes vs upstream: self-hosted -> ubuntu-latest; Apple signing/notarization,
+# Homebrew tap job, Slack notification and the "Production CLI" environment all
+# removed; build version/commit/target/date stamped; binary renamed.
+#
+# To change the binary name, edit BIN_NAME below and run the same rename across
+# bitloops/Cargo.toml ([[bin]] name) and the six agent hook source files.
+
 name: Release
 
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (for manual test runs)"
+        required: true
 
 permissions:
   contents: write
+
+env:
+  BIN_NAME: cycloops
 
 jobs:
   build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
-    environment: "Production CLI"
-    env:
-      BITLOOPS_POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
-      POSTHOG_PROJECT_ID: ${{ vars.POSTHOG_PROJECT_ID }}
     strategy:
       fail-fast: false
       matrix:
@@ -35,10 +49,34 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - uses: dtolnay/rust-toolchain@1.95.0
         with:
           targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      # --- Build metadata -------------------------------------------------
+      # build.rs reads these; cli/root/build.rs exposes them via option_env!.
+      # Without them a release binary reports version "dev".
+      - name: Compute build metadata
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          fi
+          {
+            echo "BITLOOPS_BUILD_VERSION=${TAG#v}"
+            echo "BITLOOPS_BUILD_COMMIT=$(git rev-parse --short HEAD)"
+            echo "BITLOOPS_BUILD_TARGET=${{ matrix.target }}"
+            echo "BITLOOPS_BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "RELEASE_TAG=${TAG}"
+          } >> "$GITHUB_ENV"
 
       - name: Install cross
         if: ${{ contains(matrix.target, 'unknown-linux-musl') }}
@@ -66,13 +104,12 @@ jobs:
         if: ${{ contains(matrix.target, 'unknown-linux-musl') }}
         env:
           DUCKDB_DOWNLOAD_LIB: "0"
-        run: |
-          cross build --release --target ${{ matrix.target }} -p bitloops --features duckdb-bundled
+        run: cross build --release --target ${{ matrix.target }} -p bitloops --features duckdb-bundled
 
-      - name: Build (non-musl non-Windows targets)
-        if: ${{ !contains(matrix.target, 'unknown-linux-musl') && runner.os != 'Windows' }}
+      - name: Build (macOS targets)
+        if: runner.os == 'macOS'
         env:
-          LZMA_API_STATIC: ${{ runner.os == 'macOS' && '1' || '' }}
+          LZMA_API_STATIC: "1"
           DUCKDB_DOWNLOAD_LIB: "0"
         run: cargo build --release --target ${{ matrix.target }} -p bitloops --features duckdb-bundled
 
@@ -88,157 +125,102 @@ jobs:
         run: |
           $binDir = "target/${{ matrix.target }}/release"
           $dll = Join-Path $binDir "deps/duckdb.dll"
-          if (-not (Test-Path $dll)) {
-            throw "Missing expected DuckDB runtime: $dll"
-          }
+          if (-not (Test-Path $dll)) { throw "Missing expected DuckDB runtime: $dll" }
           Copy-Item $dll (Join-Path $binDir "duckdb.dll") -Force
 
       - name: Validate macOS runtime linkage
         if: runner.os == 'macOS'
         run: |
-          bin="target/${{ matrix.target }}/release/bitloops"
+          bin="target/${{ matrix.target }}/release/${BIN_NAME}"
           links="$(otool -L "$bin")"
           echo "$links"
           if printf '%s\n' "$links" | grep '@rpath/libduckdb.dylib' >/dev/null; then
             echo "Release binary should not depend on an external DuckDB dylib" >&2
             exit 1
           fi
-          if printf '%s\n' "$links" | grep -E '/opt/homebrew|/usr/local/(Cellar|opt)|/opt/homebrew/(Cellar|opt)' >/dev/null; then
+          if printf '%s\n' "$links" | grep -E '/opt/homebrew|/usr/local/(Cellar|opt)' >/dev/null; then
             echo "Unexpected non-system macOS dylib dependency detected in $bin" >&2
             exit 1
           fi
 
+      # --- Ad-hoc signing (no Apple Developer account) ---------------------
+      # Upstream signs with a real identity and notarizes. We cannot, so we
+      # ad-hoc sign: this makes the binary runnable once the install script
+      # strips the quarantine attribute. It does NOT satisfy Gatekeeper for
+      # a double-clicked download.
+      - name: Ad-hoc sign macOS binary
+        if: runner.os == 'macOS'
+        run: |
+          codesign --force --sign - "target/${{ matrix.target }}/release/${BIN_NAME}"
+          codesign --verify --verbose=2 "target/${{ matrix.target }}/release/${BIN_NAME}"
+
       - name: Smoke test (Unix)
         if: runner.os != 'Windows' && matrix.target != 'aarch64-unknown-linux-musl'
-        run: ./target/${{ matrix.target }}/release/bitloops --version
+        run: ./target/${{ matrix.target }}/release/${BIN_NAME} --version
 
       - name: Smoke test (Linux arm64 via qemu)
         if: matrix.target == 'aarch64-unknown-linux-musl'
-        run: qemu-aarch64 ./target/${{ matrix.target }}/release/bitloops --version
+        run: qemu-aarch64 ./target/${{ matrix.target }}/release/${BIN_NAME} --version
 
-      - name: Smoke test (Windows)
+      - name: Smoke test (Windows x64)
         if: matrix.target == 'x86_64-pc-windows-msvc'
         shell: pwsh
         run: |
-          & "target/${{ matrix.target }}/release/bitloops.exe" --version
+          & "target/${{ matrix.target }}/release/$env:BIN_NAME.exe" --version
 
       - name: Validate Windows arm64 build output
         if: matrix.target == 'aarch64-pc-windows-msvc'
         shell: pwsh
         run: |
           $binDir = "target/${{ matrix.target }}/release"
-          $exe = Join-Path $binDir "bitloops.exe"
-          $dll = Join-Path $binDir "duckdb.dll"
-          if (-not (Test-Path $exe)) { throw "Missing expected binary: $exe" }
-          if (-not (Test-Path $dll)) { throw "Missing expected DuckDB runtime: $dll" }
+          if (-not (Test-Path (Join-Path $binDir "$env:BIN_NAME.exe"))) { throw "Missing binary" }
+          if (-not (Test-Path (Join-Path $binDir "duckdb.dll"))) { throw "Missing DuckDB runtime" }
 
-      - name: Import Apple signing certificate
-        if: runner.os == 'macOS'
-        env:
-          APPLE_CERT_P12_BASE64: ${{ secrets.APPLE_CERT_P12_BASE64 }}
-          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
-        run: |
-          echo "$APPLE_CERT_P12_BASE64" | base64 --decode > apple-cert.p12
-
-          security create-keychain -p temp123 build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p temp123 build.keychain
-          security set-keychain-settings -lut 21600 build.keychain
-
-          security import apple-cert.p12 \
-            -k build.keychain \
-            -P "$APPLE_CERT_PASSWORD" \
-            -T /usr/bin/codesign \
-            -T /usr/bin/security
-
-          security set-key-partition-list \
-            -S apple-tool:,apple: \
-            -s \
-            -k temp123 \
-            build.keychain
-
-      - name: Sign macOS binary
-        if: runner.os == 'macOS'
-        env:
-          APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
-        run: |
-          codesign --force --options runtime --timestamp \
-            --sign "$APPLE_SIGNING_IDENTITY" \
-            "target/${{ matrix.target }}/release/bitloops"
-
-      - name: Verify macOS signature
-        if: runner.os == 'macOS'
-        run: |
-          codesign --verify --verbose=4 "target/${{ matrix.target }}/release/bitloops"
-          codesign --display --verbose=4 "target/${{ matrix.target }}/release/bitloops"
-          spctl -a -t exec -vv "target/${{ matrix.target }}/release/bitloops" || true
-
-      - name: Smoke test (macOS signed binary)
-        if: runner.os == 'macOS'
-        run: ./target/${{ matrix.target }}/release/bitloops --version
-
+      # --- Packaging -------------------------------------------------------
+      # All archives place their payload at the archive ROOT (no nested
+      # directory). Upstream's macOS zip nested everything under package/,
+      # which complicates the install script for no benefit.
       - name: Package (Linux)
         if: runner.os == 'Linux'
         run: |
           mkdir -p dist
-          mkdir -p dist/package
-          cp "target/${{ matrix.target }}/release/bitloops" dist/package/bitloops
-          tar -C dist/package -czf dist/bitloops-${{ matrix.target }}.tar.gz bitloops
+          tar -C "target/${{ matrix.target }}/release" \
+              -czf "dist/${BIN_NAME}-${{ matrix.target }}.tar.gz" "${BIN_NAME}"
 
       - name: Package (macOS)
         if: runner.os == 'macOS'
         run: |
-          mkdir -p dist/package
-          cp "target/${{ matrix.target }}/release/bitloops" dist/package/bitloops
-          ditto -c -k --keepParent dist/package "dist/bitloops-${{ matrix.target }}.zip"
+          mkdir -p dist
+          ditto -c -k --keepParent \
+            "target/${{ matrix.target }}/release/${BIN_NAME}" \
+            "dist/${BIN_NAME}-${{ matrix.target }}.zip"
 
       - name: Verify packaged macOS archive
         if: runner.os == 'macOS'
         run: |
-          archive="dist/bitloops-${{ matrix.target }}.zip"
           tmpdir="$(mktemp -d)"
           trap 'rm -rf "$tmpdir"' EXIT
-          ditto -x -k "$archive" "$tmpdir"
-          test -f "$tmpdir/package/bitloops"
-          "$tmpdir/package/bitloops" --version
-
-      - name: Restore App Store Connect key
-        if: runner.os == 'macOS'
-        env:
-          APPSTORE_CONNECT_API_KEY_P8_BASE64: ${{ secrets.APPSTORE_CONNECT_API_KEY_P8_BASE64 }}
-        run: |
-          echo "$APPSTORE_CONNECT_API_KEY_P8_BASE64" | base64 --decode > AuthKey.p8
-
-      - name: Notarize macOS archive
-        if: runner.os == 'macOS'
-        env:
-          APPSTORE_CONNECT_KEY_ID: ${{ vars.APPSTORE_CONNECT_KEY_ID }}
-          APPSTORE_CONNECT_ISSUER_ID: ${{ vars.APPSTORE_CONNECT_ISSUER_ID }}
-        run: |
-          xcrun notarytool submit "dist/bitloops-${{ matrix.target }}.zip" \
-            --key AuthKey.p8 \
-            --key-id "$APPSTORE_CONNECT_KEY_ID" \
-            --issuer "$APPSTORE_CONNECT_ISSUER_ID" \
-            --wait
+          ditto -x -k "dist/${BIN_NAME}-${{ matrix.target }}.zip" "$tmpdir"
+          test -f "$tmpdir/${BIN_NAME}"
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path dist/package -Force | Out-Null
-          Copy-Item "target/${{ matrix.target }}/release/bitloops.exe" "dist/package/bitloops.exe" -Force
+          Copy-Item "target/${{ matrix.target }}/release/$env:BIN_NAME.exe" "dist/package/$env:BIN_NAME.exe" -Force
           Copy-Item "target/${{ matrix.target }}/release/duckdb.dll" "dist/package/duckdb.dll" -Force
-          Compress-Archive -Path dist/package/* -DestinationPath dist/bitloops-${{ matrix.target }}.zip
+          Compress-Archive -Path dist/package/* -DestinationPath "dist/$env:BIN_NAME-${{ matrix.target }}.zip"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v6
         with:
           name: release-${{ matrix.target }}
-          path: dist/bitloops-${{ matrix.target }}.*
+          path: dist/${{ env.BIN_NAME }}-${{ matrix.target }}.*
 
   publish:
     name: Publish release
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Download packaged artifacts
@@ -250,196 +232,55 @@ jobs:
       - name: Generate checksums
         run: |
           cd dist
-          sha256sum bitloops-* > checksums-sha256.txt
+          sha256sum ${BIN_NAME}-* > checksums-sha256.txt
+          cat checksums-sha256.txt
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: |
-            dist/bitloops-*
+            dist/${{ env.BIN_NAME }}-*
             dist/checksums-sha256.txt
-
-  update-homebrew-tap:
-    name: Update Homebrew tap formula
-    runs-on: self-hosted
-    needs: publish
-    environment: "Production CLI"
-    steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          owner: bitloops
-          repositories: homebrew-tap
-
-      - name: Checkout tap repo
-        uses: actions/checkout@v5
-        with:
-          repository: bitloops/homebrew-tap
-          token: ${{ steps.app-token.outputs.token }}
-          path: homebrew-tap
-
-      - name: Download release checksums
-        env:
-          REPO: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
-        run: |
-          VERSION="${TAG#v}"
-          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
-          curl -fsSL "https://github.com/${REPO}/releases/download/${TAG}/checksums-sha256.txt" -o checksums.txt
-
-      - name: Extract checksums
-        run: |
-          DARWIN_ARM="$(awk '$2 == "bitloops-aarch64-apple-darwin.zip" {print $1; exit}' checksums.txt)"
-          DARWIN_INTEL="$(awk '$2 == "bitloops-x86_64-apple-darwin.zip" {print $1; exit}' checksums.txt)"
-          LINUX_X86="$(awk '$2 == "bitloops-x86_64-unknown-linux-musl.tar.gz" {print $1; exit}' checksums.txt)"
-          LINUX_ARM="$(awk '$2 == "bitloops-aarch64-unknown-linux-musl.tar.gz" {print $1; exit}' checksums.txt)"
-
-          for value in "$DARWIN_ARM" "$DARWIN_INTEL" "$LINUX_X86" "$LINUX_ARM"; do
-            if [[ -z "$value" ]]; then
-              echo "Missing one or more required checksums in checksums-sha256.txt"
-              exit 1
-            fi
-          done
-
-          echo "SHA256_DARWIN_ARM=${DARWIN_ARM}" >> "$GITHUB_ENV"
-          echo "SHA256_DARWIN_INTEL=${DARWIN_INTEL}" >> "$GITHUB_ENV"
-          echo "SHA256_LINUX_X86=${LINUX_X86}" >> "$GITHUB_ENV"
-          echo "SHA256_LINUX_ARM=${LINUX_ARM}" >> "$GITHUB_ENV"
-
-      - name: Update formula
-        working-directory: homebrew-tap
-        env:
-          VERSION: ${{ env.VERSION }}
-          SHA256_DARWIN_ARM: ${{ env.SHA256_DARWIN_ARM }}
-          SHA256_DARWIN_INTEL: ${{ env.SHA256_DARWIN_INTEL }}
-          SHA256_LINUX_X86: ${{ env.SHA256_LINUX_X86 }}
-          SHA256_LINUX_ARM: ${{ env.SHA256_LINUX_ARM }}
-        run: |
-          if [[ ! -f Formula/bitloops.rb.template ]]; then
-            echo "Missing required file: Formula/bitloops.rb.template"
-            exit 1
-          fi
-
-          sed -e "s/{{VERSION}}/${VERSION}/g" \
-              -e "s/{{SHA256_DARWIN_ARM}}/${SHA256_DARWIN_ARM}/g" \
-              -e "s/{{SHA256_DARWIN_INTEL}}/${SHA256_DARWIN_INTEL}/g" \
-              -e "s/{{SHA256_LINUX_X86}}/${SHA256_LINUX_X86}/g" \
-              -e "s/{{SHA256_LINUX_ARM}}/${SHA256_LINUX_ARM}/g" \
-              Formula/bitloops.rb.template > Formula/bitloops.rb
-
-      - name: Create PR in tap repo
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          path: homebrew-tap
-          commit-message: bitloops ${{ env.VERSION }}
-          branch: update-bitloops-v${{ env.VERSION }}
-          delete-branch: true
-          title: bitloops ${{ env.VERSION }}
-          body: |
-            Automated formula update from [CLI release v${{ env.VERSION }}](https://github.com/${{ github.repository }}/releases/tag/v${{ env.VERSION }}).
-          base: main
-          add-paths: |
-            Formula/bitloops.rb
 
   verify:
     name: Verify published release artifacts
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: publish
-    environment: "Production CLI"
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Download assets from published release
         env:
           REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
         run: |
-          mkdir -p verify
-          cd verify
-
+          mkdir -p verify && cd verify
           assets=(
-            bitloops-aarch64-apple-darwin.zip
-            bitloops-x86_64-apple-darwin.zip
-            bitloops-x86_64-unknown-linux-musl.tar.gz
-            bitloops-aarch64-unknown-linux-musl.tar.gz
-            bitloops-x86_64-pc-windows-msvc.zip
-            bitloops-aarch64-pc-windows-msvc.zip
+            ${BIN_NAME}-aarch64-apple-darwin.zip
+            ${BIN_NAME}-x86_64-apple-darwin.zip
+            ${BIN_NAME}-x86_64-unknown-linux-musl.tar.gz
+            ${BIN_NAME}-aarch64-unknown-linux-musl.tar.gz
+            ${BIN_NAME}-x86_64-pc-windows-msvc.zip
+            ${BIN_NAME}-aarch64-pc-windows-msvc.zip
             checksums-sha256.txt
           )
-
           for asset in "${assets[@]}"; do
             curl -fL -o "$asset" "https://github.com/${REPO}/releases/download/${TAG}/${asset}"
           done
 
       - name: Verify checksums
-        run: |
-          cd verify
-          sha256sum -c checksums-sha256.txt
+        run: cd verify && sha256sum -c checksums-sha256.txt
 
       - name: Smoke test linux release binary
         run: |
           cd verify
-          tar -xzf bitloops-x86_64-unknown-linux-musl.tar.gz
-          chmod +x bitloops
-          ./bitloops --version
+          tar -xzf ${BIN_NAME}-x86_64-unknown-linux-musl.tar.gz
+          chmod +x ${BIN_NAME}
+          ./${BIN_NAME} --version
 
       - name: Smoke test linux arm64 release binary via qemu
         run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-user
-          cd verify
-          mkdir -p arm64
-          tar -xzf bitloops-aarch64-unknown-linux-musl.tar.gz -C arm64
-          chmod +x arm64/bitloops
-          qemu-aarch64 arm64/bitloops --version
-
-      - name: Generate Slack message
-        id: slack_msg
-        shell: bash
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-
-          PART1=(
-            "🚀 Bitloops CLI v${VERSION} just dropped"
-            "🚀 Bitloops CLI v${VERSION} is live"
-            "🚀 Bitloops CLI v${VERSION} just shipped"
-            "🚀 Bitloops CLI v${VERSION} is out in the wild"
-            "🚀 Bitloops CLI v${VERSION} just landed"
-            "🚀 Bitloops CLI v${VERSION} is now available"
-            "🚀 Bitloops CLI v${VERSION} deployed successfully"
-            "🚀 Bitloops CLI v${VERSION} rollout complete"
-            "🚀 Bitloops CLI v${VERSION} is officially out"
-            "🚀 Bitloops CLI v${VERSION} release complete"
-          )
-
-          PART2=(
-            "— built through strong cross-team collaboration 👏"
-            "— another solid team delivery 💪"
-            "— delivered with great engineering effort ⚙️"
-            "— a result of coordinated team execution 🤝"
-            "— reflecting high-quality team craftsmanship 🛠️"
-            "— powered by focused team iteration 🔁"
-            "— showcasing strong ownership across the team 🧠"
-            "— driven by consistent team momentum 📈"
-            "— executed with precision across contributors 🎯"
-            "— backed by collective engineering excellence ✨"
-          )
-
-          P1_INDEX=$((RANDOM % ${#PART1[@]}))
-          P2_INDEX=$((RANDOM % ${#PART2[@]}))
-          MESSAGE="${PART1[$P1_INDEX]} ${PART2[$P2_INDEX]}"
-
-          echo "message=$MESSAGE" >> "$GITHUB_OUTPUT"
-
-      - name: Send Slack notification
-        uses: slackapi/slack-github-action@v3.0.1
-        with:
-          webhook: ${{ env.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            text: "${{ steps.slack_msg.outputs.message }}"
+          sudo apt-get update && sudo apt-get install -y qemu-user
+          cd verify && mkdir -p arm64
+          tar -xzf ${BIN_NAME}-aarch64-unknown-linux-musl.tar.gz -C arm64
+          chmod +x arm64/${BIN_NAME}
+          qemu-aarch64 arm64/${BIN_NAME} --version

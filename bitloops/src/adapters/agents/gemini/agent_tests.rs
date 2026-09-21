@@ -530,62 +530,62 @@ fn TestInstallHooks() {
         verify_hook_command(
             &settings.hooks.session_start,
             "",
-            "bitloops hooks gemini session-start",
+            "cycloops hooks gemini session-start",
         );
         verify_hook_command(
             &settings.hooks.session_end,
             "exit",
-            "bitloops hooks gemini session-end",
+            "cycloops hooks gemini session-end",
         );
         verify_hook_command(
             &settings.hooks.session_end,
             "logout",
-            "bitloops hooks gemini session-end",
+            "cycloops hooks gemini session-end",
         );
         verify_hook_command(
             &settings.hooks.before_agent,
             "",
-            "bitloops hooks gemini before-agent",
+            "cycloops hooks gemini before-agent",
         );
         verify_hook_command(
             &settings.hooks.after_agent,
             "",
-            "bitloops hooks gemini after-agent",
+            "cycloops hooks gemini after-agent",
         );
         verify_hook_command(
             &settings.hooks.before_model,
             "",
-            "bitloops hooks gemini before-model",
+            "cycloops hooks gemini before-model",
         );
         verify_hook_command(
             &settings.hooks.after_model,
             "",
-            "bitloops hooks gemini after-model",
+            "cycloops hooks gemini after-model",
         );
         verify_hook_command(
             &settings.hooks.before_tool_selection,
             "",
-            "bitloops hooks gemini before-tool-selection",
+            "cycloops hooks gemini before-tool-selection",
         );
         verify_hook_command(
             &settings.hooks.before_tool,
             "*",
-            "bitloops hooks gemini before-tool",
+            "cycloops hooks gemini before-tool",
         );
         verify_hook_command(
             &settings.hooks.after_tool,
             "*",
-            "bitloops hooks gemini after-tool",
+            "cycloops hooks gemini after-tool",
         );
         verify_hook_command(
             &settings.hooks.pre_compress,
             "",
-            "bitloops hooks gemini pre-compress",
+            "cycloops hooks gemini pre-compress",
         );
         verify_hook_command(
             &settings.hooks.notification,
             "",
-            "bitloops hooks gemini notification",
+            "cycloops hooks gemini notification",
         );
 
         let count = agent
@@ -730,7 +730,7 @@ fn TestUninstallHooks() {
     "hooks": [{"name": "my-hook", "type": "command", "command": "echo hello"}]
   },
   {
-    "hooks": [{"name": "bitloops-session-start", "type": "command", "command": "bitloops hooks gemini session-start"}]
+    "hooks": [{"name": "bitloops-session-start", "type": "command", "command": "cycloops hooks gemini session-start"}]
   }
 ]
   }
@@ -751,7 +751,7 @@ fn TestUninstallHooks() {
   "hooks": {
 "SessionStart": [
   {
-    "hooks": [{"name": "bitloops-session-start", "type": "command", "command": "bitloops hooks gemini session-start"}]
+    "hooks": [{"name": "bitloops-session-start", "type": "command", "command": "cycloops hooks gemini session-start"}]
   }
 ],
 "FutureHook": [
@@ -1108,7 +1108,7 @@ fn TestReadAndParse_AgentHookInput() {
 #[allow(non_snake_case)]
 fn TestHookMatcherHelpers() {
     assert!(GeminiCliAgent::is_bitloops_hook(
-        "bitloops hooks gemini before-agent"
+        "cycloops hooks gemini before-agent"
     ));
     assert!(GeminiCliAgent::is_bitloops_hook(
         "cargo run -- hooks gemini before-agent"
@@ -1122,7 +1122,7 @@ fn TestHookMatcherHelpers() {
                 GeminiHookEntry {
                     name: "bitloops-before-agent".to_string(),
                     kind: "command".to_string(),
-                    command: "bitloops hooks gemini before-agent".to_string(),
+                    command: "cycloops hooks gemini before-agent".to_string(),
                 },
                 GeminiHookEntry {
                     name: "user-hook".to_string(),
@@ -1144,7 +1144,7 @@ fn TestHookMatcherHelpers() {
     assert!(GeminiCliAgent::has_bitloops_hook(&original));
     assert_eq!(
         GeminiCliAgent::get_first_bitloops_hook_command(&original),
-        "bitloops hooks gemini before-agent"
+        "cycloops hooks gemini before-agent"
     );
 
     let cleaned = GeminiCliAgent::remove_bitloops_hooks(original);
@@ -1157,7 +1157,7 @@ fn TestHookMatcherHelpers() {
         cleaned,
         "",
         "bitloops-after-agent",
-        "bitloops hooks gemini after-agent".to_string(),
+        "cycloops hooks gemini after-agent".to_string(),
     );
     assert_eq!(added.len(), 1);
     assert_eq!(added[0].hooks.len(), 2);
@@ -1165,7 +1165,7 @@ fn TestHookMatcherHelpers() {
         added[0]
             .hooks
             .iter()
-            .any(|hook| hook.command == "bitloops hooks gemini after-agent")
+            .any(|hook| hook.command == "cycloops hooks gemini after-agent")
     );
 }
 
@@ -1178,7 +1178,7 @@ fn TestMarshalAndParseHookTypeHelpers() {
         hooks: vec![GeminiHookEntry {
             name: "bitloops-before-tool".to_string(),
             kind: "command".to_string(),
-            command: "bitloops hooks gemini before-tool".to_string(),
+            command: "cycloops hooks gemini before-tool".to_string(),
         }],
     }];
 
@@ -1190,7 +1190,7 @@ fn TestMarshalAndParseHookTypeHelpers() {
     assert_eq!(parsed[0].hooks[0].name, "bitloops-before-tool");
     assert_eq!(
         parsed[0].hooks[0].command,
-        "bitloops hooks gemini before-tool"
+        "cycloops hooks gemini before-tool"
     );
 
     raw_hooks.insert(

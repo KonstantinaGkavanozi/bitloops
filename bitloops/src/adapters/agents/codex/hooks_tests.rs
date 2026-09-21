@@ -125,21 +125,21 @@ fn install_hooks_fresh_and_idempotent() {
 
         assert_eq!(
             session_commands,
-            vec!["bitloops hooks codex session-start".to_string()]
+            vec!["cycloops hooks codex session-start".to_string()]
         );
         assert_eq!(
             user_prompt_commands,
-            vec!["bitloops hooks codex user-prompt-submit".to_string()]
+            vec!["cycloops hooks codex user-prompt-submit".to_string()]
         );
         assert_eq!(
             pre_tool_commands,
-            vec!["bitloops hooks codex pre-tool-use".to_string()]
+            vec!["cycloops hooks codex pre-tool-use".to_string()]
         );
         assert_eq!(
             post_tool_commands,
-            vec!["bitloops hooks codex post-tool-use".to_string()]
+            vec!["cycloops hooks codex post-tool-use".to_string()]
         );
-        assert_eq!(stop_commands, vec!["bitloops hooks codex stop".to_string()]);
+        assert_eq!(stop_commands, vec!["cycloops hooks codex stop".to_string()]);
 
         let start_hook = output
             .get("hooks")
@@ -247,7 +247,7 @@ fn install_hooks_local_dev_writes_cargo_run_commands() {
         assert!(output.contains("cargo run -- hooks codex pre-tool-use"));
         assert!(output.contains("cargo run -- hooks codex post-tool-use"));
         assert!(output.contains("cargo run -- hooks codex stop"));
-        assert!(!output.contains("bitloops hooks codex session-start"));
+        assert!(!output.contains("cycloops hooks codex session-start"));
     });
 }
 
@@ -262,7 +262,7 @@ fn install_hooks_force_reinstalls_managed_hooks() {
         assert_eq!(installed, 5);
 
         let output = read_hooks(dir.path());
-        let count = output.matches("bitloops hooks codex stop").count();
+        let count = output.matches("cycloops hooks codex stop").count();
         assert_eq!(count, 1, "force should keep one managed stop hook");
     });
 }
@@ -322,7 +322,7 @@ fn uninstall_preserves_non_bitloops_hooks() {
         "hooks": [
           {
             "type": "command",
-            "command": "bitloops hooks codex session-start"
+            "command": "cycloops hooks codex session-start"
           },
           {
             "type": "command",
@@ -336,7 +336,7 @@ fn uninstall_preserves_non_bitloops_hooks() {
         "hooks": [
           {
             "type": "command",
-            "command": "bitloops hooks codex stop"
+            "command": "cycloops hooks codex stop"
           }
         ]
       }
@@ -346,7 +346,7 @@ fn uninstall_preserves_non_bitloops_hooks() {
         "hooks": [
           {
             "type": "command",
-            "command": "bitloops hooks codex user-prompt-submit"
+            "command": "cycloops hooks codex user-prompt-submit"
           }
         ]
       }
@@ -357,7 +357,7 @@ fn uninstall_preserves_non_bitloops_hooks() {
         "hooks": [
           {
             "type": "command",
-            "command": "bitloops hooks codex pre-tool-use"
+            "command": "cycloops hooks codex pre-tool-use"
           }
         ]
       }
@@ -368,7 +368,7 @@ fn uninstall_preserves_non_bitloops_hooks() {
         "hooks": [
           {
             "type": "command",
-            "command": "bitloops hooks codex post-tool-use"
+            "command": "cycloops hooks codex post-tool-use"
           }
         ]
       }
@@ -382,11 +382,11 @@ fn uninstall_preserves_non_bitloops_hooks() {
         uninstall_hooks_at(dir.path()).expect("uninstall");
         let output = read_hooks(dir.path());
         assert!(output.contains("echo custom"));
-        assert!(!output.contains("bitloops hooks codex session-start"));
-        assert!(!output.contains("bitloops hooks codex user-prompt-submit"));
-        assert!(!output.contains("bitloops hooks codex pre-tool-use"));
-        assert!(!output.contains("bitloops hooks codex post-tool-use"));
-        assert!(!output.contains("bitloops hooks codex stop"));
+        assert!(!output.contains("cycloops hooks codex session-start"));
+        assert!(!output.contains("cycloops hooks codex user-prompt-submit"));
+        assert!(!output.contains("cycloops hooks codex pre-tool-use"));
+        assert!(!output.contains("cycloops hooks codex post-tool-use"));
+        assert!(!output.contains("cycloops hooks codex stop"));
     });
 }
 
@@ -498,11 +498,11 @@ fn install_hooks_migrates_local_dev_commands_without_force() {
         assert!(!output.contains("cargo run -- hooks codex pre-tool-use"));
         assert!(!output.contains("cargo run -- hooks codex post-tool-use"));
         assert!(!output.contains("cargo run -- hooks codex stop"));
-        assert!(output.contains("bitloops hooks codex session-start"));
-        assert!(output.contains("bitloops hooks codex user-prompt-submit"));
-        assert!(output.contains("bitloops hooks codex pre-tool-use"));
-        assert!(output.contains("bitloops hooks codex post-tool-use"));
-        assert!(output.contains("bitloops hooks codex stop"));
+        assert!(output.contains("cycloops hooks codex session-start"));
+        assert!(output.contains("cycloops hooks codex user-prompt-submit"));
+        assert!(output.contains("cycloops hooks codex pre-tool-use"));
+        assert!(output.contains("cycloops hooks codex post-tool-use"));
+        assert!(output.contains("cycloops hooks codex stop"));
     });
 }
 
@@ -552,7 +552,7 @@ fn are_hooks_installed_requires_all_five_managed_hooks() {
         "hooks": [
           {
             "type": "command",
-            "command": "bitloops hooks codex session-start"
+            "command": "cycloops hooks codex session-start"
           }
         ]
       }
@@ -562,7 +562,7 @@ fn are_hooks_installed_requires_all_five_managed_hooks() {
         "hooks": [
           {
             "type": "command",
-            "command": "bitloops hooks codex stop"
+            "command": "cycloops hooks codex stop"
           }
         ]
       }
@@ -572,7 +572,7 @@ fn are_hooks_installed_requires_all_five_managed_hooks() {
         "hooks": [
           {
             "type": "command",
-            "command": "bitloops hooks codex user-prompt-submit"
+            "command": "cycloops hooks codex user-prompt-submit"
           }
         ]
       }
@@ -583,7 +583,7 @@ fn are_hooks_installed_requires_all_five_managed_hooks() {
         "hooks": [
           {
             "type": "command",
-            "command": "bitloops hooks codex pre-tool-use"
+            "command": "cycloops hooks codex pre-tool-use"
           }
         ]
       }
@@ -633,7 +633,7 @@ fn legacy_bitloops_hooks_codex_usage_is_allowlisted() {
             let Ok(content) = fs::read_to_string(&file) else {
                 continue;
             };
-            if !content.contains("bitloops hooks codex") {
+            if !content.contains("cycloops hooks codex") {
                 continue;
             }
             let rel = file
@@ -649,7 +649,7 @@ fn legacy_bitloops_hooks_codex_usage_is_allowlisted() {
 
         assert!(
             violations.is_empty(),
-            "unexpected `bitloops hooks codex` usage outside allowlist: {:?}",
+            "unexpected `cycloops hooks codex` usage outside allowlist: {:?}",
             violations
         );
     });

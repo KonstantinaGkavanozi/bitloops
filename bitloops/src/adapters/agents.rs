@@ -216,10 +216,10 @@ mod hook_command_tests {
             crate::config::ENV_DAEMON_CONFIG_PATH_OVERRIDE,
             Some("/tmp/config root/config.toml"),
             || {
-                let command = managed_hook_command("bitloops hooks claude-code session-start");
+                let command = managed_hook_command("cycloops hooks claude-code session-start");
                 assert_eq!(
                     command,
-                    "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' bitloops hooks claude-code session-start"
+                    "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' cycloops hooks claude-code session-start"
                 );
             },
         );
@@ -227,10 +227,10 @@ mod hook_command_tests {
 
     #[test]
     fn is_managed_hook_command_accepts_env_prefixed_commands() {
-        let command = "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' bitloops hooks claude-code session-start";
+        let command = "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' cycloops hooks claude-code session-start";
         assert!(is_managed_hook_command(
             command,
-            &["bitloops hooks claude-code "]
+            &["cycloops hooks claude-code "]
         ));
     }
 }

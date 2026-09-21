@@ -33,7 +33,7 @@ pub fn render_plugin_template(repo_root: &Path, local_dev: bool) -> Result<Strin
     let bitloops_cmd = if local_dev {
         vec!["cargo", "run", "--"]
     } else {
-        vec!["bitloops"]
+        vec!["cycloops"]
     };
     let bitloops_cmd = to_string(&bitloops_cmd)
         .map_err(|err| anyhow!("failed to serialize Bitloops command argv: {err}"))?;
@@ -121,7 +121,7 @@ enabled = true
 
         let rendered = render_plugin_template(repo_root, false).expect("render should succeed");
 
-        assert!(rendered.contains(r#"const BITLOOPS_CMD = ["bitloops"]"#));
+        assert!(rendered.contains(r#"const BITLOOPS_CMD = ["cycloops"]"#));
         assert_eq!(rendered_const::<String>(&rendered, "BOOTSTRAP_CONTEXT"), "");
         assert!(
             rendered.contains("\"experimental.chat.messages.transform\": async"),
@@ -264,7 +264,7 @@ devql_guidance_enabled = false
 
         let rendered = render_plugin_template(dir.path(), false).expect("render should succeed");
 
-        assert!(rendered.contains(r#"const BITLOOPS_CMD = ["bitloops"]"#));
+        assert!(rendered.contains(r#"const BITLOOPS_CMD = ["cycloops"]"#));
         assert_eq!(rendered_const::<String>(&rendered, "BOOTSTRAP_CONTEXT"), "");
         assert!(!rendered.contains("DevQL-capable guidance surface"));
         assert!(!rendered.contains("<EXTREMELY_IMPORTANT>"));

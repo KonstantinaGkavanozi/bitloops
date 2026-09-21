@@ -674,7 +674,7 @@ fn TestRootCommand_SendAnalytics_ExactArgsValidation() {
 fn TestPersistentPostRun_SkipsHiddenParent() {
     let root = Cli::command();
 
-    // Find the leaf command: bitloops hooks git post-commit.
+    // Find the leaf command: cycloops hooks git post-commit.
     // This exercises the real command tree where "hooks" is hidden but descendants are not.
     let hooks = find_subcommand(&root, "hooks");
     let git = find_subcommand(hooks, "git");

@@ -628,7 +628,7 @@ supported = ["claude-code"]
         .unwrap();
 
         let settings = fs::read_to_string(app.join(".claude/settings.json")).unwrap();
-        assert!(!settings.contains("bitloops hooks claude-code"));
+        assert!(!settings.contains("cycloops hooks claude-code"));
     });
 }
 

@@ -8,7 +8,7 @@ use super::types::CopilotHooksFile;
 
 const HOOKS_DIR: &str = ".github/hooks";
 const HOOKS_FILE_NAME: &str = "bitloops.json";
-const BITLOOPS_HOOK_PREFIX: &str = "bitloops hooks copilot ";
+const BITLOOPS_HOOK_PREFIX: &str = "cycloops hooks copilot ";
 const LOCAL_DEV_HOOK_PREFIX: &str = "cargo run -- hooks copilot ";
 const MANAGED_HOOK_PREFIXES: [&str; 2] = [BITLOOPS_HOOK_PREFIX, LOCAL_DEV_HOOK_PREFIX];
 
@@ -519,10 +519,10 @@ mod tests {
         let content = r#"{
   "version": 1,
   "hooks": {
-    "userPromptSubmitted": [{"type":"command","bash":"bitloops hooks copilot user-prompt-submitted"}],
-    "sessionStart": [{"type":"command","bash":"bitloops hooks copilot session-start"}],
-    "agentStop": [{"type":"command","bash":"bitloops hooks copilot agent-stop"}],
-    "sessionEnd": [{"type":"command","bash":"bitloops hooks copilot session-end"}]
+    "userPromptSubmitted": [{"type":"command","bash":"cycloops hooks copilot user-prompt-submitted"}],
+    "sessionStart": [{"type":"command","bash":"cycloops hooks copilot session-start"}],
+    "agentStop": [{"type":"command","bash":"cycloops hooks copilot agent-stop"}],
+    "sessionEnd": [{"type":"command","bash":"cycloops hooks copilot session-end"}]
   }
 }
 "#;
@@ -539,9 +539,9 @@ mod tests {
         let content = r#"{
   "version": 1,
   "hooks": {
-    "userPromptSubmitted": [{"type":"command","bash":"bitloops hooks copilot user-prompt-submitted"}],
-    "sessionStart": [{"type":"command","bash":"bitloops hooks copilot session-start"}],
-    "agentStop": [{"type":"command","bash":"bitloops hooks copilot agent-stop"}]
+    "userPromptSubmitted": [{"type":"command","bash":"cycloops hooks copilot user-prompt-submitted"}],
+    "sessionStart": [{"type":"command","bash":"cycloops hooks copilot session-start"}],
+    "agentStop": [{"type":"command","bash":"cycloops hooks copilot agent-stop"}]
   }
 }
 "#;
@@ -564,7 +564,7 @@ mod tests {
         let content =
             fs::read_to_string(dir.path().join(".github/hooks/bitloops.json")).expect("read");
         assert!(content.contains("cargo run -- hooks copilot session-start"));
-        assert!(!content.contains("bitloops hooks copilot session-start"));
+        assert!(!content.contains("cycloops hooks copilot session-start"));
     }
 
     #[test]
@@ -632,7 +632,7 @@ mod tests {
         .expect("install");
         let content = fs::read_to_string(hooks_dir.join("bitloops.json")).expect("read");
         assert!(content.contains("echo custom-session-start"));
-        assert!(content.contains("bitloops hooks copilot session-start"));
+        assert!(content.contains("cycloops hooks copilot session-start"));
     }
 
     #[test]
@@ -646,7 +646,7 @@ mod tests {
             r#"{
   "version": 1,
   "hooks": {
-    "userPromptSubmitted": [{"type":"command","bash":"bitloops hooks copilot user-prompt-submitted"}],
+    "userPromptSubmitted": [{"type":"command","bash":"cycloops hooks copilot user-prompt-submitted"}],
     "sessionStart": [{"type":"command","bash":"echo custom-session-start"}],
     "customHook": [{"type":"command","bash":"echo custom"}]
   }
@@ -667,13 +667,13 @@ mod tests {
         let content = fs::read_to_string(hooks_dir.join("bitloops.json")).expect("read");
         assert_eq!(
             content
-                .matches("bitloops hooks copilot user-prompt-submitted")
+                .matches("cycloops hooks copilot user-prompt-submitted")
                 .count(),
             1
         );
         assert!(content.contains("echo custom-session-start"));
         assert!(content.contains("echo custom"));
-        assert!(content.contains("bitloops hooks copilot session-end"));
+        assert!(content.contains("cycloops hooks copilot session-end"));
     }
 
     #[test]
@@ -694,7 +694,7 @@ mod tests {
   "version": 1,
   "hooks": {
     "sessionStart": [
-      {"type":"command","bash":"bitloops hooks copilot session-start"},
+      {"type":"command","bash":"cycloops hooks copilot session-start"},
       {"type":"command","bash":"echo custom"}
     ]
   }
@@ -706,6 +706,6 @@ mod tests {
         uninstall_hooks_at(dir.path()).expect("uninstall");
         let output = fs::read_to_string(&hooks_path).expect("read");
         assert!(output.contains("echo custom"));
-        assert!(!output.contains("bitloops hooks copilot session-start"));
+        assert!(!output.contains("cycloops hooks copilot session-start"));
     }
 }

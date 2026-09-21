@@ -39,7 +39,7 @@ export const BitloopsPlugin: Plugin = async ({ client, directory, $ }) => {
   await $`mkdir -p ${transcriptDir}`.quiet().nothrow()
 
   /**
-   * Pipe JSON payload to an bitloops hooks command.
+   * Pipe JSON payload to a cycloops hooks command.
    * Errors are logged but never thrown - plugin failures must not crash OpenCode.
    */
   async function callHook(hookName: string, payload: Record<string, unknown>) {

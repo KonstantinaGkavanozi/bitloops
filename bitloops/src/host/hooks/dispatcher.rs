@@ -1,4 +1,4 @@
-//! `bitloops hooks ...` — shared dispatcher for agent and git hook commands.
+//! `cycloops hooks ...` — shared dispatcher for agent and git hook commands.
 use std::io::{self, Read};
 use std::path::Path;
 use std::sync::{Mutex, OnceLock};
