@@ -278,14 +278,14 @@ pub fn check_now(w: &mut dyn Write, current_version: &str) {
     if is_outdated(current_version, &latest_version) {
         print_notification(w, current_version, &latest_version);
     } else {
-        let _ = writeln!(w, "Bitloops CLI is up to date (v{current_version}).");
+        let _ = writeln!(w, "Cycloops CLI is up to date (v{current_version}).");
     }
 }
 
 fn print_notification(w: &mut dyn Write, current: &str, latest: &str) {
     let _ = write!(
         w,
-        "\nA newer version of Bitloops CLI is available: {latest} (current: {current})\nRun '{}' to update.\n",
+        "\nA newer version of Cycloops CLI is available: {latest} (current: {current})\nRun '{}' to update.\n",
         update_command()
     );
 }

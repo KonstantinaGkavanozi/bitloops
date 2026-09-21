@@ -54,7 +54,7 @@ pub(crate) fn write_version(
         "{}",
         color_hex_if_enabled(&bitloops_wordmark(), CYCLOOPS_ACCENT_HEX)
     )?;
-    writeln!(w, "Bitloops CLI {}", pretty_version(version))?;
+    writeln!(w, "Cycloops CLI {}", pretty_version(version))?;
     writeln!(w, "{VERSION_DIVIDER}")?;
     writeln!(w, "commit: {}", short_commit(commit))?;
     writeln!(w, "target: {}", target.trim())?;

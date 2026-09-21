@@ -292,7 +292,7 @@ fn TestRootCommand_CustomHelpCommand_FallbackToRootOnUnknownTarget() {
     with_env_vars(&[("NO_COLOR", Some("1"))], || {
         let help = render_custom_help(&["not-a-real-command"], false);
         assert!(
-            help.contains("Bitloops CLI"),
+            help.contains("Cycloops CLI"),
             "unknown help target should fallback to root command help"
         );
     });
@@ -625,7 +625,7 @@ fn TestRootCommand_VersionOutput() {
             "version output should include the brand mark"
         );
         assert!(
-            rendered.contains("Bitloops CLI v0.0.10\n"),
+            rendered.contains("Cycloops CLI v0.0.10\n"),
             "version output should include the formatted version header"
         );
         assert!(

@@ -321,7 +321,7 @@ fn install_hooks_at_path_with_daemon_config_override(
             normalized.push(json!({
                 "type": "command",
                 "bash": command,
-                "comment": "Bitloops CLI"
+                "comment": "Cycloops CLI"
             }));
         }
         if normalized != existing {

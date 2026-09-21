@@ -934,7 +934,7 @@ fn remove_restores_backup_when_hook_already_gone() {
 
 #[test]
 fn test_generate_chained_content() {
-    let base = "#!/bin/sh\n# Bitloops git hooks\ncycloops hooks git pre-push \"$1\" || true\n";
+    let base = "#!/bin/sh\n# Cycloops git hooks\ncycloops hooks git pre-push \"$1\" || true\n";
     let result = generate_chained_content(base, "pre-push");
 
     assert!(result.starts_with(base));

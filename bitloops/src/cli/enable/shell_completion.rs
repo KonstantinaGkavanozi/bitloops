@@ -4,7 +4,7 @@ use std::{env, fs};
 
 use anyhow::{Context, Result, bail};
 
-pub const SHELL_COMPLETION_COMMENT: &str = "# Bitloops CLI shell completion";
+pub const SHELL_COMPLETION_COMMENT: &str = "# Cycloops CLI shell completion";
 
 pub fn shell_completion_target(home: &Path) -> Result<(String, PathBuf, String)> {
     let shell = env::var("SHELL").unwrap_or_default();

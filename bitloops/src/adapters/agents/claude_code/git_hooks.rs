@@ -20,7 +20,7 @@ use anyhow::{Context, Result};
 use crate::test_support::process_state::git_command;
 
 /// Comment embedded in every managed hook script — used as the installation marker.
-const HOOK_MARKER: &str = "# Bitloops git hooks";
+const HOOK_MARKER: &str = "# Cycloops git hooks";
 
 /// Suffix appended to pre-existing hooks when backing them up.
 const BACKUP_SUFFIX: &str = ".pre-bitloops";
