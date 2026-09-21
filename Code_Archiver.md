@@ -26,7 +26,7 @@ curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/
 irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
 ```
 
-The installer downloads the latest release for your platform, checks it against the published SHA-256, puts `cycloops` on your PATH, and disables telemetry. On Windows it also installs `duckdb.dll` next to the binary; keep the two together.
+The installer downloads the latest release for your platform, checks it against the published SHA-256, and puts `cycloops` on your PATH. Telemetry is off in the build itself, so the installer sets nothing for it. On Windows it also installs `duckdb.dll` next to the binary; keep the two together.
 
 Then, in a **new** terminal:
 
@@ -90,11 +90,11 @@ That last point matters if anyone outside the team runs this on their own reposi
 | `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default: `~/Desktop/bitloops code` |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off. It is on by default. |
 | `BITLOOPS_CODE_EXPORT_TRACE` | Any non-empty value makes the archiver print to stderr which files it saw and why each was saved or skipped. For troubleshooting. |
-| `BITLOOPS_TELEMETRY_OPTOUT` | Set to `1` by the installer. The upstream PostHog key is compiled in, so without this the fork reports usage to Bitloops. |
+| `BITLOOPS_TELEMETRY_OPTIN` | Telemetry is off in this build and needs no switch. Setting this to a non-empty value turns reporting on; note the compiled-in PostHog key belongs to upstream Bitloops, so the data would land in their project. `BITLOOPS_TELEMETRY_OPTOUT` still works and overrides it. |
 
 **Where to set them.** At the end of each agent turn, the `cycloops hooks ...` command that your agent launches archives the changed files itself. It needs neither the daemon nor the database. It also queues the turn for the daemon, which archives too but skips anything the hook already saved with the same content. So the variables must be set in the environment of the **agent** — the terminal or app you start Claude Code, Cursor, etc. from — not just any shell. If you run the daemon, restart it after changing the variables, because a running daemon keeps using the old ones.
 
-The installer writes `BITLOOPS_TELEMETRY_OPTOUT` (and `BITLOOPS_CODE_EXPORT_DIR`, if you passed one) to your shell profile on macOS/Linux, or to your user environment on Windows. To set the export directory afterwards:
+The installer writes `BITLOOPS_CODE_EXPORT_DIR` to your shell profile on macOS/Linux, or to your user environment on Windows, if you passed one. To set the export directory afterwards:
 
 - **Windows (PowerShell), permanent:**
   ```powershell

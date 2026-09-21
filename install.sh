@@ -154,19 +154,15 @@ main() {
     done
   fi
 
-  # --- research defaults ---
-  # Telemetry is opt-out only; the upstream PostHog key is compiled in, so
-  # without this the fork reports usage to Bitloops.
-  local env_lines="export BITLOOPS_TELEMETRY_OPTOUT=1"
-  if [ -n "${CYCLOOPS_EXPORT_DIR:-}" ]; then
-    env_lines="${env_lines}
-export BITLOOPS_CODE_EXPORT_DIR=\"${CYCLOOPS_EXPORT_DIR}\""
-  fi
-  if [ -z "${CYCLOOPS_NO_PATH:-}" ]; then
+  # --- archive destination ---
+  # Telemetry needs no switch here: this build reports nothing unless
+  # BITLOOPS_TELEMETRY_OPTIN is set explicitly.
+  if [ -n "${CYCLOOPS_EXPORT_DIR:-}" ] && [ -z "${CYCLOOPS_NO_PATH:-}" ]; then
     for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
       [ -f "$rc" ] || continue
-      grep -Fqs "BITLOOPS_TELEMETRY_OPTOUT" "$rc" && continue
-      printf '\n# added by %s installer\n%s\n' "$BIN_NAME" "$env_lines" >> "$rc"
+      grep -Fqs "BITLOOPS_CODE_EXPORT_DIR" "$rc" && continue
+      printf '\n# added by %s installer\nexport BITLOOPS_CODE_EXPORT_DIR="%s"\n' \
+        "$BIN_NAME" "${CYCLOOPS_EXPORT_DIR}" >> "$rc"
     done
   fi
 

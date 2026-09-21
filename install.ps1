@@ -135,9 +135,8 @@ try {
             Info "Added $InstallDir to your user PATH"
         }
 
-        # Telemetry is opt-out only; the upstream PostHog key is compiled in,
-        # so without this the fork reports usage to Bitloops.
-        [Environment]::SetEnvironmentVariable('BITLOOPS_TELEMETRY_OPTOUT', '1', 'User')
+        # Telemetry needs no switch here: this build reports nothing unless
+        # BITLOOPS_TELEMETRY_OPTIN is set explicitly.
 
         if ($ExportDir) {
             [Environment]::SetEnvironmentVariable('BITLOOPS_CODE_EXPORT_DIR', $ExportDir, 'User')

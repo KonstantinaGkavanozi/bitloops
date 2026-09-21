@@ -31,6 +31,21 @@ const TELEMETRY_SEND_TIMEOUT: Duration = Duration::from_secs(5);
 /// If this env var is set to any non-empty value, telemetry is disabled (user opt-out).
 pub const TELEMETRY_OPTOUT_ENV: &str = "BITLOOPS_TELEMETRY_OPTOUT";
 
+/// Opt-IN switch for this research build. Telemetry is off unless this env var
+/// is set to a non-empty value, because the PostHog project key compiled into
+/// this crate belongs to upstream Bitloops, not to us: anything sent would land
+/// in someone else's project, gathered from research participants who never
+/// agreed to it. The opt-out variable above still works and still wins.
+pub const TELEMETRY_OPTIN_ENV: &str = "BITLOOPS_TELEMETRY_OPTIN";
+
+/// The single gate every telemetry path goes through.
+pub fn telemetry_enabled() -> bool {
+    if env::var(TELEMETRY_OPTOUT_ENV).is_ok_and(|v| !v.is_empty()) {
+        return false;
+    }
+    env::var(TELEMETRY_OPTIN_ENV).is_ok_and(|v| !v.is_empty())
+}
+
 /// Namespace used when hashing machine id into distinct_id (avoids collisions with other products).
 /// Not the PostHog project ID; use your project ID here if you want to namespace by project.
 pub const DISTINCT_ID_NAMESPACE: &str = "137911";
@@ -159,7 +174,7 @@ pub fn track_action_detached(
     success: bool,
     duration_ms: u128,
 ) {
-    if env::var(TELEMETRY_OPTOUT_ENV).is_ok_and(|v| !v.is_empty()) {
+    if !telemetry_enabled() {
         return;
     }
 
@@ -192,7 +207,7 @@ pub fn track_action_detached(
 }
 
 pub fn track_session_activity_detached(repo_root: &Path, strategy: &str, source: &str) {
-    if env::var(TELEMETRY_OPTOUT_ENV).is_ok_and(|v| !v.is_empty()) {
+    if !telemetry_enabled() {
         return;
     }
 
@@ -204,7 +219,7 @@ pub fn track_session_activity_detached(repo_root: &Path, strategy: &str, source:
 }
 
 pub fn track_session_end_detached(ended: &crate::telemetry::sessions::EndedSession, source: &str) {
-    if env::var(TELEMETRY_OPTOUT_ENV).is_ok_and(|v| !v.is_empty()) {
+    if !telemetry_enabled() {
         return;
     }
 
@@ -335,6 +350,9 @@ pub fn send_session_end(ended: &crate::telemetry::sessions::EndedSession) {
 }
 
 fn enqueue_event_payload(payload: &EventPayload) {
+    if !telemetry_enabled() {
+        return;
+    }
     match spool::enqueue_payload(payload, unix_timestamp_secs()) {
         Ok(spool::EnqueueOutcome::Queued) => {
             #[cfg(not(test))]
@@ -357,6 +375,10 @@ fn enqueue_event_payload(payload: &EventPayload) {
 }
 
 pub fn send_event(payload_json: &str) {
+    if !telemetry_enabled() {
+        return;
+    }
+
     let debug = debug_enabled();
 
     let Ok(payload) = serde_json::from_str::<EventPayload>(payload_json) else {
@@ -388,6 +410,10 @@ pub fn send_event(payload_json: &str) {
 }
 
 pub fn start_analytics_spool_worker_once() {
+    if !telemetry_enabled() {
+        return;
+    }
+
     static ANALYTICS_SPOOL_WORKER: OnceLock<()> = OnceLock::new();
 
     let _ = ANALYTICS_SPOOL_WORKER.get_or_init(|| {
@@ -472,6 +498,10 @@ struct OutboundEvent {
 }
 
 fn send_outbound_events(events: &[OutboundEvent]) -> Result<()> {
+    if !telemetry_enabled() {
+        return Ok(());
+    }
+
     if events.is_empty() {
         return Ok(());
     }
