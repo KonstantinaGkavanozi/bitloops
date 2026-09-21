@@ -164,7 +164,7 @@ Archiver-only mode is on, so there is no daemon to start and init asks
 nothing beyond which agents to hook. Re-run with -FullCli for the full
 Bitloops pipeline.
 
-Archives are written to `$env:BITLOOPS_CODE_EXPORT_DIR, default %USERPROFILE%\Desktop\bitloops code.
+Archives are written to `$env:BITLOOPS_CODE_EXPORT_DIR, default %USERPROFILE%\Desktop\cycloops code.
 If OneDrive has redirected your Desktop, set BITLOOPS_CODE_EXPORT_DIR explicitly.
 Set it for the terminal or app you launch your agent from, not just any shell.
 

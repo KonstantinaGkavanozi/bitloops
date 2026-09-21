@@ -48,7 +48,7 @@ Tick the agents you use. That's the whole setup — there is no daemon to keep
 running.
 
 Now work as usual. At the end of each agent turn, files land in
-`~/Desktop/bitloops code/<repo>/...` as JSON:
+`~/Desktop/cycloops code/<repo>/...` as JSON:
 
 ```json
 {
@@ -85,7 +85,7 @@ own repositories, say so in your consent material, or add a denylist first.
 
 | Variable | Effect |
 |---|---|
-| `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default `~/Desktop/bitloops code` |
+| `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default `~/Desktop/cycloops code` |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off |
 | `BITLOOPS_CODE_EXPORT_TRACE` | Print to stderr which files were seen and why each was saved or skipped |
 | `CYCLOOPS_ARCHIVER_ONLY` | Set by the installer. Archive and nothing else — see below |

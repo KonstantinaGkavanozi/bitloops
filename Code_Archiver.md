@@ -82,7 +82,7 @@ One JSON file per changed file, per turn:
 For example, if the agent edits `src/app.rs` in a repo called `my-project`:
 
 ```
-~/Desktop/bitloops code/my-project/src/1789900000-123456__app.rs.json
+~/Desktop/cycloops code/my-project/src/1789900000-123456__app.rs.json
 ```
 
 Each file contains:
@@ -111,7 +111,7 @@ That last point matters if anyone outside the team runs this on their own reposi
 
 | Variable | Effect |
 |---|---|
-| `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default: `~/Desktop/bitloops code` |
+| `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default: `~/Desktop/cycloops code` |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off. It is on by default. |
 | `BITLOOPS_CODE_EXPORT_TRACE` | Any non-empty value makes the archiver print to stderr which files it saw and why each was saved or skipped. For troubleshooting. |
 | `CYCLOOPS_ARCHIVER_ONLY` | Set by the installer. Archive turns and nothing else: no daemon, no database, no sync or ingest, and `init` stops asking about them. Unset it for the full Bitloops pipeline. |
@@ -131,7 +131,7 @@ The installer writes `BITLOOPS_CODE_EXPORT_DIR` to your shell profile on macOS/L
   export BITLOOPS_CODE_EXPORT_DIR="$HOME/bitloops-archive"
   ```
 - **macOS, agent launched from the Dock or Spotlight (not a terminal):** shell files aren't read. Use `launchctl setenv BITLOOPS_CODE_EXPORT_DIR "$HOME/bitloops-archive"` and restart the app.
-- On Windows, if your Desktop is redirected (for example by OneDrive), the default `%USERPROFILE%\Desktop\bitloops code` may not be your visible Desktop. Set `BITLOOPS_CODE_EXPORT_DIR` explicitly.
+- On Windows, if your Desktop is redirected (for example by OneDrive), the default `%USERPROFILE%\Desktop\cycloops code` may not be your visible Desktop. Set `BITLOOPS_CODE_EXPORT_DIR` explicitly.
 
 ## Choices you will be asked to make (full mode only)
 
@@ -153,7 +153,7 @@ The exact list can differ a little depending on what is already configured. Skip
 
 1. Run `cycloops --version` and confirm it is the build you expect.
 2. In a repo where you ran `cycloops init`, ask your agent to create or change a file.
-3. When the turn ends, look in the export folder (default `~/Desktop/bitloops code/<repo name>/`). There should be a `.json` file for each changed file.
+3. When the turn ends, look in the export folder (default `~/Desktop/cycloops code/<repo name>/`). There should be a `.json` file for each changed file.
 
 The core logic — writing `{model, code}` files, the disable switch, the `unknown` model fallback, skipping unchanged files — has unit tests in `code_export.rs`. The hook-side archiving has been exercised by hand on Windows against a temporary folder: the first run saved every uncommitted file and a second run saved none. A full run with a real agent turn has not been confirmed yet.
 

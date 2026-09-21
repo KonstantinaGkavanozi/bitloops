@@ -190,7 +190,7 @@ Archiver-only mode is on, so there is no daemon to start and init asks
 nothing beyond which agents to hook. Unset CYCLOOPS_ARCHIVER_ONLY for the
 full Bitloops pipeline.
 
-Archives are written to \${BITLOOPS_CODE_EXPORT_DIR:-~/Desktop/bitloops code}/.
+Archives are written to \${BITLOOPS_CODE_EXPORT_DIR:-~/Desktop/cycloops code}/.
 Set BITLOOPS_CODE_EXPORT_DIR in the environment of the terminal or app you
 launch your agent from, not just any shell.
 

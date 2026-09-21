@@ -21,7 +21,7 @@
 //!
 //! Enabled by default. Disable with `BITLOOPS_CODE_EXPORT_DISABLE` set to any
 //! non-empty value. Override the destination directory with
-//! `BITLOOPS_CODE_EXPORT_DIR`; it defaults to `~/Desktop/bitloops code`.
+//! `BITLOOPS_CODE_EXPORT_DIR`; it defaults to `~/Desktop/cycloops code`.
 
 use std::collections::HashSet;
 use std::env;
@@ -45,7 +45,7 @@ fn is_disabled() -> bool {
 /// since the archiver otherwise skips files without saying why.
 pub(crate) fn trace(message: &str) {
     if env::var_os(ENV_TRACE).is_some_and(|value| !value.is_empty()) {
-        eprintln!("[bitloops code-export] {message}");
+        eprintln!("[cycloops code-export] {message}");
     }
 }
 
@@ -56,7 +56,7 @@ fn export_root() -> PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
         .join("Desktop")
-        .join("bitloops code")
+        .join("cycloops code")
 }
 
 /// Microsecond-resolution timestamp component so multiple files exported in
