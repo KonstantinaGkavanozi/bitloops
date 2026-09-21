@@ -4,23 +4,26 @@ Release flow for this research fork.
 
 ## Workflows
 
-`.github/workflows/release.yml` is the only workflow. The eight others were
-inherited from upstream and removed: they need `self-hosted` runners, a
-`develop` branch, or secrets (`OPENAI_API_KEY_PR_REVIEW`,
-`BITLOOPS_ACTIONS_VARIABLES_TOKEN`) that this fork does not have. One of
-them, `allow-main-only-via-develop`, failed every PR into `main` that did not
-come from `develop`.
+Two workflows: `ci.yml` and `release.yml`.
 
-There is therefore **no CI**. Run the tests locally before merging:
+`ci.yml` runs on every push to `main` and every PR - build the CLI, run
+`cycloops --version`, then the full `cargo nextest` suite on `ubuntu-latest`.
+`DUCKDB_DOWNLOAD_LIB=1` fetches a prebuilt DuckDB rather than compiling its
+C++, so a cached run is minutes rather than half an hour. The first run is
+slow while the cache fills.
+
+The eight workflows inherited from upstream were removed: they need
+`self-hosted` runners, a `develop` branch, or secrets
+(`OPENAI_API_KEY_PR_REVIEW`, `BITLOOPS_ACTIONS_VARIABLES_TOKEN`) that this
+fork does not have. One of them, `allow-main-only-via-develop`, failed every
+PR into `main` that did not come from `develop`.
+
+Locally, the same checks are:
 
 ```bash
-cargo build --release -p bitloops
+cargo build -p bitloops
 cargo test -p bitloops
 ```
-
-Worth replacing with a plain `ubuntu-latest` workflow at some point; the
-first build takes 10-25 minutes because `libduckdb-sys` compiles DuckDB from
-source.
 
 ## 1. Ship code to `main`
 
@@ -81,6 +84,11 @@ cycloops --version
 
 ```powershell
 irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
+cycloops --version
+```
+
+```cmd
+curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.cmd -o install.cmd && install.cmd && del install.cmd
 cycloops --version
 ```
 

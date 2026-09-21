@@ -1,0 +1,56 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Use the prebuilt DuckDB library rather than compiling its C++ sources.
+  # Building bundled on a 2-core runner takes far longer than the tests do.
+  DUCKDB_DOWNLOAD_LIB: "1"
+
+jobs:
+  test:
+    name: Build and test (Ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@1.95.0
+
+      - uses: taiki-e/install-action@nextest
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: . -> target
+          shared-key: ci
+          cache-workspace-crates: true
+
+      # Catches anything that breaks the binary target itself — the bin name in
+      # build.rs link args, CARGO_BIN_EXE_*, and so on.
+      - name: Build the CLI
+        run: cargo build -p bitloops
+
+      - name: Smoke test
+        run: ./target/debug/cycloops --version
+
+      # The ci profile in .config/nextest.toml serialises the env-mutating and
+      # qat test groups, which are not safe to run in parallel.
+      - name: Run tests
+        run: cargo nextest run -p bitloops --profile ci
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: junit
+          path: target/nextest/ci/junit.xml
+          if-no-files-found: ignore

@@ -26,6 +26,12 @@ curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/
 irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
 ```
 
+**Windows (CMD)**
+
+```cmd
+curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.cmd -o install.cmd && install.cmd && del install.cmd
+```
+
 The installer downloads the latest release for your platform, checks it against the published SHA-256, and puts `cycloops` on your PATH. Telemetry is off in the build itself, so the installer sets nothing for it. On Windows it also installs `duckdb.dll` next to the binary; keep the two together.
 
 Then, in a **new** terminal:
