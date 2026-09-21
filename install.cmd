@@ -13,7 +13,7 @@ REM
 REM Arguments are passed straight through, so the PowerShell parameters work
 REM here too:
 REM
-REM   install.cmd -Version v0.0.31-archiver.1
+REM   install.cmd -Version v0.0.2
 REM   install.cmd -ExportDir D:\bitloops-archive
 REM   install.cmd -FullCli
 

@@ -4,7 +4,7 @@
 #
 # Or, to pass options, download first:
 #   irm https://raw.githubusercontent.com/.../install.ps1 -OutFile install.ps1
-#   .\install.ps1 -Version v0.0.31-archiver.1 -ExportDir D:\bitloops-archive
+#   .\install.ps1 -Version v0.0.2 -ExportDir D:\bitloops-archive
 
 [CmdletBinding()]
 param(

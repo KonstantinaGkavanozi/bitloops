@@ -5,7 +5,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.sh | bash
 #
 # Options (env vars):
-#   CYCLOOPS_VERSION      tag to install, e.g. v0.0.31-archiver.1  (default: latest)
+#   CYCLOOPS_VERSION      tag to install, e.g. v0.0.2  (default: latest)
 #   CYCLOOPS_INSTALL_DIR  where to put the binary  (default: ~/.local/bin)
 #   CYCLOOPS_EXPORT_DIR   archive destination      (default: the binary's own default)
 #   CYCLOOPS_FULL_CLI=1   install the full Bitloops pipeline instead of

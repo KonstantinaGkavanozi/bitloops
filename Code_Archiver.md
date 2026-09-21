@@ -63,10 +63,10 @@ below.
 To install a specific version instead of the latest:
 
 ```bash
-CYCLOOPS_VERSION=v0.0.31-archiver.1 curl -fsSL .../install.sh | bash
+CYCLOOPS_VERSION=v0.0.2 curl -fsSL .../install.sh | bash
 ```
 ```powershell
-.\install.ps1 -Version v0.0.31-archiver.1
+.\install.ps1 -Version v0.0.2
 ```
 
 Run `cycloops --version` and note what it prints. For a study, record that string alongside the archived data — it identifies the exact build that produced it.
@@ -203,6 +203,6 @@ On unusual Linux targets (musl, for example) the prebuilt DuckDB library doesn't
 Cutting a release:
 
 ```bash
-git tag v0.0.31-archiver.2
-git push origin v0.0.31-archiver.2
+git tag v0.0.2
+git push origin v0.0.2
 ```

@@ -187,12 +187,17 @@ jobs:
           tar -C "target/${{ matrix.target }}/release" \
               -czf "dist/${BIN_NAME}-${{ matrix.target }}.tar.gz" "${BIN_NAME}"
 
+      # ditto --keepParent embeds the SOURCE'S PARENT DIRECTORY NAME, so
+      # pointing it at the binary produced an archive containing
+      # release/<bin> rather than <bin>. Stage the payload in its own
+      # directory and archive that directory's CONTENTS (no --keepParent),
+      # which puts the binary at the archive root.
       - name: Package (macOS)
         if: runner.os == 'macOS'
         run: |
-          mkdir -p dist
-          ditto -c -k --keepParent \
-            "target/${{ matrix.target }}/release/${BIN_NAME}" \
+          rm -rf dist/pkg && mkdir -p dist/pkg
+          cp "target/${{ matrix.target }}/release/${BIN_NAME}" "dist/pkg/${BIN_NAME}"
+          ditto -c -k --sequesterRsrc "dist/pkg" \
             "dist/${BIN_NAME}-${{ matrix.target }}.zip"
 
       - name: Verify packaged macOS archive
@@ -201,7 +206,12 @@ jobs:
           tmpdir="$(mktemp -d)"
           trap 'rm -rf "$tmpdir"' EXIT
           ditto -x -k "dist/${BIN_NAME}-${{ matrix.target }}.zip" "$tmpdir"
-          test -f "$tmpdir/${BIN_NAME}"
+          if [ ! -f "$tmpdir/${BIN_NAME}" ]; then
+            echo "Expected ${BIN_NAME} at the archive root. Archive contains:" >&2
+            find "$tmpdir" -mindepth 1 >&2
+            exit 1
+          fi
+          test -x "$tmpdir/${BIN_NAME}"
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
