@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 pub const SETTINGS_FILE_NAME: &str = "settings.json";
 
 /// Prefix that identifies a Bitloops-managed hook command.
-const BITLOOPS_HOOK_PREFIX: &str = "bitloops ";
+const BITLOOPS_HOOK_PREFIX: &str = "cycloops ";
 
 // Hook commands — subcommands of `cycloops hooks claude-code`
 const CMD_SESSION_START: &str = "cycloops hooks claude-code session-start";
