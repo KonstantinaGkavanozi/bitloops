@@ -877,7 +877,7 @@ fn full_uninstall_removes_supported_temp_artefacts() {
             fs::create_dir_all(home.path().join(".bitloops").join("certs")).unwrap();
             fs::write(
                 home.path().join(".zshrc"),
-                format!("{SHELL_COMPLETION_COMMENT}\nsource <(bitloops completion zsh)\n"),
+                format!("{SHELL_COMPLETION_COMMENT}\nsource <(cycloops completion zsh)\n"),
             )
             .unwrap();
             codex_hooks::install_hooks_at(repo.path(), false, false).unwrap();

@@ -67,16 +67,16 @@ available, fall back to targeted repo search or file reads.
 
 ```bash
 # Use AUTO search first when the request is approximate or conceptual
-bitloops devql query '{ selectArtefacts(by: { search: "<distilled conceptual phrase>" }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score summary } searchBreakdown(first: 3) { lexical { path symbolFqn score summary } identity { path symbolFqn score summary } code { path symbolFqn score summary } summary { path symbolFqn score summary } } } }'
+cycloops devql query '{ selectArtefacts(by: { search: "<distilled conceptual phrase>" }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score summary } searchBreakdown(first: 3) { lexical { path symbolFqn score summary } identity { path symbolFqn score summary } code { path symbolFqn score summary } summary { path symbolFqn score summary } } } }'
 
 # Use LEXICAL search for identifiers, literals, paths, or snippets
-bitloops devql query '{ selectArtefacts(by: { search: "<identifier or snippet>", searchMode: LEXICAL }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score summary } } }'
+cycloops devql query '{ selectArtefacts(by: { search: "<identifier or snippet>", searchMode: LEXICAL }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score summary } } }'
 
 # Ask for overview once the selection is concrete
-bitloops devql query '{ selectArtefacts(by: { symbolFqn: "<symbol-fqn>" }) { overview } }'
+cycloops devql query '{ selectArtefacts(by: { symbolFqn: "<symbol-fqn>" }) { overview } }'
 
 # Same overview shape for file or file+line selectors
-bitloops devql query '{ selectArtefacts(by: { path: "<repo-relative-path>", lines: { start: <start>, end: <end> } }) { overview } }'
+cycloops devql query '{ selectArtefacts(by: { path: "<repo-relative-path>", lines: { start: <start>, end: <end> } }) { overview } }'
 ```
 
 ## Reading Response Hints
@@ -92,9 +92,9 @@ bitloops devql query '{ selectArtefacts(by: { path: "<repo-relative-path>", line
 
 ## Sandbox Execution
 
-- In sandboxed agent environments, run `bitloops devql ...` outside the sandbox by default.
+- In sandboxed agent environments, run `cycloops devql ...` outside the sandbox by default.
 - These commands rely on Bitloops-managed daemon and runtime state under platform app directories, so they can fail inside a workspace-only sandbox even when DevQL is healthy.
-- If your platform requires approval or escalation for out-of-sandbox commands, request it immediately before running `bitloops devql ...`.
+- If your platform requires approval or escalation for out-of-sandbox commands, request it immediately before running `cycloops devql ...`.
 
 ## Common Mistakes
 

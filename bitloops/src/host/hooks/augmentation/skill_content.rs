@@ -26,14 +26,14 @@ mod tests {
         let body = using_devql_skill_body();
         assert!(body.contains("# Using DevQL"));
         assert!(!body.starts_with("---"));
-        assert!(body.contains("bitloops devql query"));
+        assert!(body.contains("cycloops devql query"));
     }
 
     #[test]
     fn using_devql_skill_mentions_running_bitloops_devql_outside_sandbox() {
         let body = using_devql_skill_body();
         assert!(body.contains("outside the sandbox"));
-        assert!(body.contains("bitloops devql"));
+        assert!(body.contains("cycloops devql"));
     }
 
     #[test]
@@ -90,7 +90,7 @@ mod tests {
         assert!(body.contains("read bounded ranges returned by DevQL"));
         assert!(body.contains("fall back when DevQL fails"));
         assert!(body.contains("Do not run `cycloops devql --help`"));
-        assert!(body.contains("bitloops devql query '{ selectArtefacts"));
+        assert!(body.contains("cycloops devql query '{ selectArtefacts"));
         assert!(body.contains("searchMode: LEXICAL"));
         assert!(body.contains("default `AUTO`"));
         assert!(body.contains("search: \"<short behavior phrase or task keywords>\""));

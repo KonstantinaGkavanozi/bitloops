@@ -440,7 +440,7 @@ mod tests {
             "installed repo skill should contain skill metadata, got:\n{skill}"
         );
         assert!(
-            skill.contains("bitloops devql query"),
+            skill.contains("cycloops devql query"),
             "installed repo skill should contain devql commands, got:\n{skill}"
         );
     }

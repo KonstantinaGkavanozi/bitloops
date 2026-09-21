@@ -55,7 +55,7 @@ mod tests {
         assert!(content.starts_with("---\n"));
         assert!(content.contains("alwaysApply: true"));
         assert!(content.contains("primary discovery tool"));
-        assert!(content.contains("bitloops devql query"));
+        assert!(content.contains("cycloops devql query"));
         assert!(content.contains("searchMode: LEXICAL"));
         assert!(content.contains("fall back when DevQL fails"));
         assert!(content.contains("symbolFqn"));

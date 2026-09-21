@@ -10,7 +10,7 @@ description: >
 
 <VERY_IMPORTANT>
 For code understanding and exploration, DevQL is the primary discovery tool, not
-a one-time preflight. Use `bitloops devql query ...` whenever locating symbols,
+a one-time preflight. Use `cycloops devql query ...` whenever locating symbols,
 files, tests, implementations, callers/usages, or the next source region to
 inspect.
 </VERY_IMPORTANT>
@@ -24,7 +24,7 @@ lookup. Use traditional tools only to:
 - run tests or git/status commands
 - fall back when DevQL fails, is empty, or contradicts the task
 
-Do not run `bitloops devql --help` or `bitloops devql query --help`.
+Do not run `cycloops devql --help` or `cycloops devql query --help`.
 
 Choose the most specific selector:
 
@@ -44,18 +44,18 @@ Use compact exploration queries. If the prompt has no concrete anchor, start
 with the default `AUTO` query:
 
 ```bash
-bitloops devql query '{ selectArtefacts(by: { search: "<short behavior phrase or task keywords>" }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score } } }'
-bitloops devql query '{ selectArtefacts(by: { search: "<single identifier, literal, path fragment, or short snippet>", searchMode: LEXICAL }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score } } }'
-bitloops devql query '{ selectArtefacts(by: { symbolFqn: "<symbol-fqn>" }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score } } }'
-bitloops devql query '{ selectArtefacts(by: { path: "<repo-relative-path>", lines: { start: <start>, end: <end> } }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score } } }'
+cycloops devql query '{ selectArtefacts(by: { search: "<short behavior phrase or task keywords>" }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score } } }'
+cycloops devql query '{ selectArtefacts(by: { search: "<single identifier, literal, path fragment, or short snippet>", searchMode: LEXICAL }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score } } }'
+cycloops devql query '{ selectArtefacts(by: { symbolFqn: "<symbol-fqn>" }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score } } }'
+cycloops devql query '{ selectArtefacts(by: { path: "<repo-relative-path>", lines: { start: <start>, end: <end> } }) { count artefacts(first: 10) { path symbolFqn canonicalKind startLine endLine score } } }'
 ```
 
 For architecture role context on a known file, use the minimal GraphQL shape and
 request role fields only unless target or rule metadata is needed:
 
 ```bash
-bitloops devql query  '{ selectArtefacts(by: { path: "<repo-relative-path>" }) { architectureRoles(first: 10) { items(first: 10) { role { canonicalKey displayName family description } target { symbolFqn canonicalKind } } } } }'
-bitloops devql query  '{ selectArtefacts(by: { symbolFqn: "<symbol-fqn>" }) { architectureRoles(first: 10) { items(first: 10) { role { canonicalKey displayName family description } target { symbolFqn canonicalKind } } } } }'
+cycloops devql query  '{ selectArtefacts(by: { path: "<repo-relative-path>" }) { architectureRoles(first: 10) { items(first: 10) { role { canonicalKey displayName family description } target { symbolFqn canonicalKind } } } } }'
+cycloops devql query  '{ selectArtefacts(by: { symbolFqn: "<symbol-fqn>" }) { architectureRoles(first: 10) { items(first: 10) { role { canonicalKey displayName family description } target { symbolFqn canonicalKind } } } } }'
 ```
 
 If DevQL returns relevant paths and line ranges:
