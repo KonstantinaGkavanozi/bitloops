@@ -39,6 +39,21 @@ jobs:
       - name: Build the CLI
         run: cargo build -p bitloops
 
+      # DUCKDB_DOWNLOAD_LIB fetches a prebuilt libduckdb.so, but build.rs only
+      # emits rpath entries on macOS, so nothing tells the Linux binary where
+      # it is. The integration tests spawn the binary too, so this has to be
+      # set for the whole job, not just the smoke step.
+      - name: Locate the DuckDB runtime
+        run: |
+          lib="$(find target -name 'libduckdb.so*' -print -quit)"
+          if [ -z "$lib" ]; then
+            echo "libduckdb.so not found under target/" >&2
+            find target -name 'libduckdb*' -print >&2 || true
+            exit 1
+          fi
+          echo "Found $lib"
+          echo "LD_LIBRARY_PATH=$(cd "$(dirname "$lib")" && pwd)${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+
       - name: Smoke test
         run: ./target/debug/cycloops --version
 
