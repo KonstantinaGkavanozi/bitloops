@@ -315,6 +315,9 @@ fn TestTrackSessionActivityCreatesSessionStoreEntry() {
             (TEST_STATE_DIR_OVERRIDE_ENV, Some(state_root_str.as_str())),
             ("BITLOOPS_TELEMETRY_DISTINCT_ID", Some("fixed-test-id")),
             ("BITLOOPS_TELEMETRY_FORCE_NO_DISTINCT_ID", None),
+            // Reporting is opt-in in this build; this test exercises the
+            // reporting path, so it has to opt in.
+            (TELEMETRY_OPTIN_ENV, Some("1")),
         ],
         || {
             track_session_activity_detached(tmp.path(), "dashboard", "dashboard");

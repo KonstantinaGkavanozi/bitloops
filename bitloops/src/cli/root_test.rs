@@ -62,7 +62,7 @@ fn TestRootCommand_LongHelpIncludesGettingStartedAndAccessibility() {
         "long help should include getting-started guidance"
     );
     assert!(
-        help.contains("bitloops init"),
+        help.contains("cycloops init"),
         "long help should include the init command in getting-started guidance"
     );
     assert!(
@@ -264,7 +264,7 @@ fn TestRootCommand_CustomHelpCommand_TreeOutputSkipsHiddenCommands() {
     let tree = render_custom_help(&[], true);
 
     assert!(
-        tree.lines().next() == Some("bitloops"),
+        tree.lines().next() == Some("cycloops"),
         "tree output should start with root command name"
     );
     assert!(
@@ -455,7 +455,7 @@ fn TestRootCommand_CompletionCommandOutputsScripts() {
     write_completion(&mut bash, CompletionShell::Bash).expect("bash completion should render");
     let bash = String::from_utf8(bash).expect("bash completion utf8");
     assert!(
-        bash.contains("bitloops"),
+        bash.contains("cycloops"),
         "bash completion should mention binary name"
     );
     assert!(
@@ -467,7 +467,7 @@ fn TestRootCommand_CompletionCommandOutputsScripts() {
     write_completion(&mut zsh, CompletionShell::Zsh).expect("zsh completion should render");
     let zsh = String::from_utf8(zsh).expect("zsh completion utf8");
     assert!(
-        zsh.contains("bitloops"),
+        zsh.contains("cycloops"),
         "zsh completion should mention binary name"
     );
     assert!(
@@ -479,11 +479,11 @@ fn TestRootCommand_CompletionCommandOutputsScripts() {
     write_completion(&mut fish, CompletionShell::Fish).expect("fish completion should render");
     let fish = String::from_utf8(fish).expect("fish completion utf8");
     assert!(
-        fish.contains("bitloops"),
+        fish.contains("cycloops"),
         "fish completion should mention binary name"
     );
     assert!(
-        fish.contains("complete -c bitloops"),
+        fish.contains("complete -c cycloops"),
         "fish completion should contain fish completion entries"
     );
 }
@@ -513,7 +513,7 @@ fn TestRootCommand_CurlBashPostInstall_WiresShellCompletionForSupportedShell() {
                 "rc file should contain shell completion comment"
             );
             assert!(
-                content.contains("bitloops completion zsh"),
+                content.contains("cycloops completion zsh"),
                 "rc file should contain zsh completion command"
             );
         },

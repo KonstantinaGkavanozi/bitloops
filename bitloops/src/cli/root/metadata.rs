@@ -1,6 +1,6 @@
 pub const ROOT_NAME: &str = "cycloops";
 pub const ROOT_SHORT_ABOUT: &str = "Cycloops CLI";
-pub const ROOT_LONG_ABOUT: &str = r#"Cycloops - a research build of the Bitloops CLI that archives agent-written code
+pub const ROOT_LONG_ABOUT: &str = r#"Cycloops CLI - a research build of Bitloops that archives agent-written code
 
 Getting Started:
   Run 'cycloops init' inside a repository to install the agent hooks.
