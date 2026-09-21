@@ -3,7 +3,7 @@ use std::io::{IsTerminal, Write};
 use anyhow::Result;
 use terminal_size::{Width, terminal_size};
 
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, color_hex_if_enabled};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, color_hex_if_enabled};
 
 use super::super::{
     BottomProgressState, INIT_SPINNER_FRAMES, InitChecklistState, SUCCESS_GREEN_HEX,
@@ -100,7 +100,7 @@ impl InitProgressRenderer {
     ) -> String {
         let mut lines = Vec::new();
         let spinner =
-            color_hex_if_enabled(INIT_SPINNER_FRAMES[self.spinner_index], BITLOOPS_PURPLE_HEX);
+            color_hex_if_enabled(INIT_SPINNER_FRAMES[self.spinner_index], CYCLOOPS_ACCENT_HEX);
         let tick = color_hex_if_enabled("✓", SUCCESS_GREEN_HEX);
         if checklist.show_sync {
             lines.push(render_init_checklist_item(

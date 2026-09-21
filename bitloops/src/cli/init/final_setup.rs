@@ -450,7 +450,7 @@ fn render_follow_up_picker(
             lines.push(String::new());
         }
         let pointer = if idx == cursor {
-            color_hex_if_enabled(">", crate::utils::branding::BITLOOPS_PURPLE_HEX)
+            color_hex_if_enabled(">", crate::utils::branding::CYCLOOPS_ACCENT_HEX)
         } else {
             " ".to_string()
         };
@@ -506,7 +506,7 @@ fn selected_follow_up_checkbox() -> String {
     format!(
         "{}{}{}",
         color_hex_if_enabled("[", SELECTION_WHITE_HEX),
-        color_hex_if_enabled("•", crate::utils::branding::BITLOOPS_PURPLE_HEX),
+        color_hex_if_enabled("•", crate::utils::branding::CYCLOOPS_ACCENT_HEX),
         color_hex_if_enabled("]", SELECTION_WHITE_HEX)
     )
 }

@@ -2,7 +2,7 @@ use std::io::Write;
 
 use anyhow::Result;
 
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, color_hex_if_enabled};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, color_hex_if_enabled};
 
 const SUCCESS_GREEN_HEX: &str = "#22c55e";
 const INTEGRATION_SPINNER_FRAME: &str = "⠋";
@@ -11,7 +11,7 @@ pub(super) fn write_integrations_installing(
     out: &mut dyn Write,
     integrations: &[crate::cli::agent_surfaces::AgentIntegrationReport],
 ) -> Result<Option<usize>> {
-    let spinner = color_hex_if_enabled(INTEGRATION_SPINNER_FRAME, BITLOOPS_PURPLE_HEX);
+    let spinner = color_hex_if_enabled(INTEGRATION_SPINNER_FRAME, CYCLOOPS_ACCENT_HEX);
     let label_width = integrations
         .iter()
         .map(|integration| integration.label.chars().count())

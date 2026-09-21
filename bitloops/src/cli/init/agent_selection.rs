@@ -8,7 +8,7 @@ use std::{env, fs};
 
 use anyhow::{Result, anyhow, bail};
 
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, color_hex_if_enabled, should_use_color_output};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, color_hex_if_enabled, should_use_color_output};
 
 use super::agent_hooks::{DEFAULT_AGENT, agent_display, available_agents, detect_agents};
 
@@ -332,7 +332,7 @@ fn render_agent_picker(
     lines.push(String::new());
     for (idx, label) in labels.iter().enumerate() {
         let pointer = if idx == cursor {
-            color_hex_if_enabled(">", BITLOOPS_PURPLE_HEX)
+            color_hex_if_enabled(">", CYCLOOPS_ACCENT_HEX)
         } else {
             " ".to_string()
         };
@@ -350,7 +350,7 @@ fn render_agent_picker(
     }
     lines.push(String::new());
     let pointer = if cursor == labels.len() {
-        color_hex_if_enabled(">", BITLOOPS_PURPLE_HEX)
+        color_hex_if_enabled(">", CYCLOOPS_ACCENT_HEX)
     } else {
         " ".to_string()
     };
@@ -404,7 +404,7 @@ fn selected_picker_checkbox() -> String {
     format!(
         "{}{}{}",
         color_hex_if_enabled("[", SELECTION_WHITE_HEX),
-        color_hex_if_enabled("•", BITLOOPS_PURPLE_HEX),
+        color_hex_if_enabled("•", CYCLOOPS_ACCENT_HEX),
         color_hex_if_enabled("]", SELECTION_WHITE_HEX)
     )
 }

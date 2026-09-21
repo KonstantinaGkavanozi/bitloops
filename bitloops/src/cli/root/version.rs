@@ -3,7 +3,7 @@ use std::env;
 use std::io::{self, Write};
 
 use crate::cli::versioncheck;
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, bitloops_wordmark, color_hex_if_enabled};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, bitloops_wordmark, color_hex_if_enabled};
 
 use super::build::{build_commit, build_date, build_target, build_version};
 
@@ -52,7 +52,7 @@ pub(crate) fn write_version(
     writeln!(
         w,
         "{}",
-        color_hex_if_enabled(&bitloops_wordmark(), BITLOOPS_PURPLE_HEX)
+        color_hex_if_enabled(&bitloops_wordmark(), CYCLOOPS_ACCENT_HEX)
     )?;
     writeln!(w, "Bitloops CLI {}", pretty_version(version))?;
     writeln!(w, "{VERSION_DIVIDER}")?;

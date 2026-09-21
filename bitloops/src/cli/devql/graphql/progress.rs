@@ -5,7 +5,7 @@ use anyhow::Result;
 use terminal_size::{Width, terminal_size};
 
 use super::types::TaskGraphqlRecord;
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, color_hex_if_enabled};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, color_hex_if_enabled};
 
 pub(super) const TASK_PROGRESS_POLL_INTERVAL: Duration = Duration::from_secs(1);
 pub(super) const TASK_RENDER_TICK_INTERVAL: Duration = Duration::from_millis(120);
@@ -59,7 +59,7 @@ impl TaskProgressRenderer {
     }
 
     fn spinner_frame(&self) -> String {
-        color_hex_if_enabled(TASK_SPINNER_FRAMES[self.spinner_index], BITLOOPS_PURPLE_HEX)
+        color_hex_if_enabled(TASK_SPINNER_FRAMES[self.spinner_index], CYCLOOPS_ACCENT_HEX)
     }
 
     fn render_frame(&self, task: &TaskGraphqlRecord) -> String {
@@ -382,7 +382,7 @@ fn progress_ratio(task: &TaskGraphqlRecord) -> Option<(f64, i32, i32)> {
 fn render_determinate_progress_bar(width: usize, ratio: f64) -> String {
     let filled = ((width as f64) * ratio).round() as usize;
     let filled = filled.min(width);
-    let fill = color_hex_if_enabled(&"█".repeat(filled), BITLOOPS_PURPLE_HEX);
+    let fill = color_hex_if_enabled(&"█".repeat(filled), CYCLOOPS_ACCENT_HEX);
     let empty = "░".repeat(width.saturating_sub(filled));
     format!("{fill}{empty}")
 }
@@ -394,7 +394,7 @@ fn render_indeterminate_progress_bar(width: usize, spinner_index: usize) -> Stri
 
     let position = spinner_index % width;
     let prefix = "░".repeat(position);
-    let pulse = color_hex_if_enabled("█", BITLOOPS_PURPLE_HEX);
+    let pulse = color_hex_if_enabled("█", CYCLOOPS_ACCENT_HEX);
     let suffix = "░".repeat(width.saturating_sub(position + 1));
     format!("{prefix}{pulse}{suffix}")
 }

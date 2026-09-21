@@ -9,7 +9,7 @@ use crate::runtime_presentation::{
     INIT_SUMMARY_EMBEDDINGS_LANE_LABEL, INIT_SUMMARY_EMBEDDINGS_SECTION_TITLE,
     INIT_SYNC_LANE_LABEL, INIT_SYNC_SECTION_TITLE,
 };
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, color_hex_if_enabled};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, color_hex_if_enabled};
 
 use super::bars::SUCCESS_GREEN_HEX;
 use super::compact::{LaneRenderContext, compact_selected_section_titles, render_compact_lane};
@@ -86,7 +86,7 @@ impl RuntimeInitRenderer {
             .as_ref()
             .filter(|session| session.init_session_id == session_id);
         let spinner =
-            color_hex_if_enabled(INIT_SPINNER_FRAMES[self.spinner_index], BITLOOPS_PURPLE_HEX);
+            color_hex_if_enabled(INIT_SPINNER_FRAMES[self.spinner_index], CYCLOOPS_ACCENT_HEX);
         let tick = color_hex_if_enabled("✓", SUCCESS_GREEN_HEX);
         let render_context = LaneRenderContext {
             spinner: spinner.as_str(),

@@ -1,4 +1,4 @@
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, color_hex_if_enabled};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, color_hex_if_enabled};
 
 pub(crate) const SUCCESS_GREEN_HEX: &str = "#22c55e";
 
@@ -24,7 +24,7 @@ pub(crate) fn render_determinate_progress_bar(
 ) -> String {
     let (persisted, in_memory, empty) =
         determinate_progress_bar_segments(width, ratio, in_memory_ratio);
-    let persisted_fill = color_hex_if_enabled(&"█".repeat(persisted), BITLOOPS_PURPLE_HEX);
+    let persisted_fill = color_hex_if_enabled(&"█".repeat(persisted), CYCLOOPS_ACCENT_HEX);
     let in_memory_fill = color_hex_if_enabled(&"█".repeat(in_memory), SUCCESS_GREEN_HEX);
     let empty = "░".repeat(empty);
     format!("{persisted_fill}{in_memory_fill}{empty}")
@@ -36,7 +36,7 @@ pub(crate) fn render_indeterminate_progress_bar(width: usize, spinner_index: usi
     }
     let position = spinner_index % width;
     let prefix = "░".repeat(position);
-    let pulse = color_hex_if_enabled("█", BITLOOPS_PURPLE_HEX);
+    let pulse = color_hex_if_enabled("█", CYCLOOPS_ACCENT_HEX);
     let suffix = "░".repeat(width.saturating_sub(position + 1));
     format!("{prefix}{pulse}{suffix}")
 }

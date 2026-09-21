@@ -12,7 +12,7 @@ use std::process::{Command, Stdio};
 
 use anyhow::{Result, anyhow, bail};
 
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, color_hex_if_enabled, should_use_color_output};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, color_hex_if_enabled, should_use_color_output};
 
 #[cfg(test)]
 use std::{cell::RefCell, rc::Rc};
@@ -317,12 +317,12 @@ fn render_single_select(
 
     for (index, option) in options.iter().enumerate() {
         let pointer = if index == cursor {
-            color_hex_if_enabled(">", BITLOOPS_PURPLE_HEX)
+            color_hex_if_enabled(">", CYCLOOPS_ACCENT_HEX)
         } else {
             " ".to_string()
         };
         let label = if index == cursor {
-            color_hex_if_enabled(&option.label, BITLOOPS_PURPLE_HEX)
+            color_hex_if_enabled(&option.label, CYCLOOPS_ACCENT_HEX)
         } else {
             option.label.clone()
         };
@@ -367,7 +367,7 @@ fn render_multi_select(out: &mut dyn Write, state: MultiSelectRenderState<'_>) -
 
     for (index, option) in state.options.iter().enumerate() {
         let pointer = if index == state.cursor {
-            color_hex_if_enabled(">", BITLOOPS_PURPLE_HEX)
+            color_hex_if_enabled(">", CYCLOOPS_ACCENT_HEX)
         } else {
             " ".to_string()
         };
@@ -377,14 +377,14 @@ fn render_multi_select(out: &mut dyn Write, state: MultiSelectRenderState<'_>) -
             "[ ]"
         };
         let label = if index == state.cursor {
-            color_hex_if_enabled(&option.label, BITLOOPS_PURPLE_HEX)
+            color_hex_if_enabled(&option.label, CYCLOOPS_ACCENT_HEX)
         } else {
             option.label.clone()
         };
         let line = if state.selected[index] {
             format!(
                 "{pointer} {} {}",
-                color_hex_if_enabled(checkbox, BITLOOPS_PURPLE_HEX),
+                color_hex_if_enabled(checkbox, CYCLOOPS_ACCENT_HEX),
                 label
             )
         } else {
