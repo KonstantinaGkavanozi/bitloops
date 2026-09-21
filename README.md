@@ -1,227 +1,154 @@
-<div align="center">
-  <img src="assets/bitloops-logo_320x132.png" alt="Bitloops logo" width="360" height="148" />
-  <h1>Give AI coding agents the context they need to ship production-quality software.</h1>
+# Cycloops
 
-<h4 align="center">Your AI agent forgets your codebase between sessions. You re-explain the architecture, re-paste rules, re-list constraints. Bitloops captures all of it once — automatically, from your agent conversations — and feeds the right pieces back to every future prompt. Runs locally. Replaces your CLAUDE.md, .cursor/rules, and AGENTS.md.</h4>
+A research build of the [Bitloops](https://github.com/bitloops/bitloops) CLI
+that archives the code AI agents write.
 
+Every time an agent finishes a turn in a repo it is watching, Cycloops saves a
+copy of each file the agent created or modified, together with the name of the
+model that wrote it. The result is a timestamped record of what each model
+produced, as JSON, on disk.
 
+The command is `cycloops`. It installs alongside an official Bitloops
+install without either one disturbing the other.
 
-[![Fork](https://img.shields.io/github/forks/bitloops/bitloops?style=flat-square&label=Fork)](https://github.com/bitloops/bitloops/network/)
-[![Star](https://img.shields.io/github/stars/bitloops/bitloops?style=flat-square&label=Star)](https://github.com/bitloops/bitloops/stargazers/)
-[![Commits](https://badgen.net/github/commits/bitloops/bitloops?color=6b7280)](https://github.com/bitloops/bitloops/commits/)
-[![Version](https://img.shields.io/github/v/tag/bitloops/bitloops?style=flat-square&color=7404e4)](https://github.com/bitloops/bitloops/tags/)
-[![Downloads](https://img.shields.io/github/downloads/bitloops/bitloops/total?style=flat-square&color=6b7280)](https://github.com/bitloops/bitloops/releases)
-[![License](https://img.shields.io/github/license/bitloops/bitloops?style=flat-square&color=111827)](https://github.com/bitloops/bitloops/blob/main/LICENSE)
-[![Local First](https://img.shields.io/badge/Data-Local%20First-7404e4?style=flat-square)](https://github.com/bitloops/bitloops)
-[![Agent Agnostic](https://img.shields.io/badge/Agents-Agent%20Agnostic-7404e4?style=flat-square)](https://github.com/bitloops/bitloops)
-</div>
+## Install
 
-
-
-<p align="center">    
-    <a href="https://bitloops.com">Website</a>
-    ·
-    <a href="https://bitloops.com/docs/">Docs</a>
-    ·
-    <a href="https://bitloops.com/docs/getting-started/quickstart">Quickstart</a>
-    ·
-    <a href="https://bitloops.com/docs/concepts/devql">DevQL</a>
-    ·
-    <a href="https://github.com/bitloops/bitloops/discussions">Discussions</a>
-  </p>
-
-
-
-
-## Quick Start
-
-Fast scripted setup installs Bitloops and applies the default daemon config:
-
-**macOS, Linux, WSL:**
+**macOS / Linux**
 
 ```bash
-curl -fsSL https://bitloops.com/install.sh | bash -s -- --default-config
+curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.sh | bash
 ```
 
-**Windows PowerShell:**
+**Windows (PowerShell)**
 
 ```powershell
-& ([scriptblock]::Create((irm https://bitloops.com/install.ps1))) -DefaultConfig
+irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
 ```
 
-Then, from inside the repo you want Bitloops to capture:
- 
-```bash
-bitloops init
+**Windows (CMD)**
+
+```cmd
+curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
-Prefer to configure manually? Install without the default-config flag, then run:
+No Rust toolchain and no build required. The installer picks the right
+prebuilt binary, checks it against the published SHA-256, and puts it on your
+PATH.
 
-```bash
-bitloops configure --web
-bitloops init
-```
- 
-Work normally with Codex, Claude Code, Cursor, Gemini, Opencode or Copilot. Commit as usual. Bitloops captures the relevant context around every change and keeps your codebase model fresh in the background.
+## Use
 
-
-Open the local dashboard:
+In a **new** terminal, from the repository you want to record:
 
 ```bash
-bitloops dashboard
+cd path/to/your/repo
+cycloops init
 ```
 
-Other install paths and full setup → [Docs](https://bitloops.com/docs/getting-started/quickstart)
+Tick the agents you use. That's the whole setup — there is no daemon to keep
+running.
 
+Now work as usual. At the end of each agent turn, files land in
+`~/Desktop/bitloops code/<repo>/...` as JSON:
 
-## What You Get
- 
-- 🧠 **Persistent codebase substrate** — files, symbols, dependencies, tests, and history modeled as a queryable graph, not text.
-- 🪶 **Automatic context capture** — decisions, constraints, and reasoning are pulled from your agent conversations as you work. No markdown file to maintain.
-- 🎯 **Relevance-ranked retrieval** — every prompt gets the artifacts that actually matter. Not all files. Not random files. The right ones.
-- 🔁 **Cross-agent memory** — what you decided in Claude Code yesterday guides Cursor today and Copilot tomorrow. Same substrate underneath all of them.
-- 🧾 **Provenance from commit to prompt** — every commit traces back to the prompt, model, and rejected alternatives that produced it. Two weeks later you can still answer "why."
-- 🗺️ **Code City spatial view** — a live map of your codebase. Files as buildings, height as size, arcs as dependencies. Filter by what AI touched.
-- 🔍 **DevQL** — a typed query language for your codebase model. Ask precise questions instead of grepping.
-- 🔒 **Local-first** — your code isn't stored on our infrastructure. The daemon runs on your machine.
-- 🧩 **Drops in alongside your agent** — no agent switch, no IDE switch. Bitloops is the substrate underneath.
-
-
----
- 
-## Why Bitloops Exists
- 
-You've already built the workaround. A CLAUDE.md that grew to 2,000 lines. A `.cursor/rules` folder you copy-paste between projects. An AGENTS.md you swear you'll keep updated. A shell script that concatenates the "right" files into every prompt.
- 
-The pattern is always the same: a second brain for your codebase, built in markdown, manually maintained, going stale every week.
- 
-AI coding agents are bottlenecked by state, not generation. A codebase isn't fundamentally text — it's a system of files, symbols, APIs, tests, decisions, and history. Most agents force that structured system through an unstructured medium (prompt text, RAG chunks, embeddings) and have to infer the system over and over.
- 
-The loop today:
- 
+```json
+{
+  "model": "claude-sonnet-5",
+  "code": "...the full contents of the file after the turn..."
+}
 ```
-retrieve → infer → act → forget
+
+To put them somewhere else, set `BITLOOPS_CODE_EXPORT_DIR` — in the
+environment of the terminal or app you launch your agent from, not just any
+shell.
+
+```bash
+CYCLOOPS_EXPORT_DIR="$HOME/research-archive" \
+  curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.sh | bash
 ```
- 
-Bitloops changes the loop to:
- 
+
+## What gets saved
+
+- Only files **created or modified** during the turn. Deletions are not recorded.
+- The **whole file**, not a diff.
+- A file is written again only when its content differs from its newest
+  archived copy, so an unchanged file is not re-saved every turn.
+- Each save carries its own timestamp, so earlier versions stay alongside later
+  ones.
+- Unreadable files (binaries, files removed again) are skipped silently.
+- Archiving never blocks or fails an agent turn.
+
+**There is no ignore list.** A changed `.env` or key file is archived like any
+other file, in plain text. If people outside your team will run this on their
+own repositories, say so in your consent material, or add a denylist first.
+
+## Settings
+
+| Variable | Effect |
+|---|---|
+| `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default `~/Desktop/bitloops code` |
+| `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off |
+| `BITLOOPS_CODE_EXPORT_TRACE` | Print to stderr which files were seen and why each was saved or skipped |
+| `CYCLOOPS_ARCHIVER_ONLY` | Set by the installer. Archive and nothing else — see below |
+| `BITLOOPS_TELEMETRY_OPTIN` | Telemetry is off. Setting this turns it on |
+
+The environment variables keep their `BITLOOPS_` prefix: they are read by
+unchanged upstream code. The command is `cycloops`, the settings are
+`BITLOOPS_`. This is not a typo.
+
+## Two modes
+
+**Archiver-only** (the default, set by the installer). The agent hook saves the
+turn's code and stops. No daemon, no database, no sync, no checkpoints, and
+`init` asks only which agents to hook. This is the mode to give study
+participants — there is nothing to keep running and nothing that can fail in a
+way they would have to debug.
+
+**Full CLI.** Unset `CYCLOOPS_ARCHIVER_ONLY` and everything the upstream
+project does is still there: the daemon, DevQL, the dashboard, embeddings,
+checkpoints, commit history import. Start it with `cycloops daemon start`.
+Note that `init` will then offer Bitloops Cloud for embeddings, which
+authenticates against upstream's real service.
+
+## Supported agents
+
+Claude Code, Codex, Cursor, Gemini, Copilot, OpenCode.
+
+## Telemetry
+
+Off. This build reports nothing unless `BITLOOPS_TELEMETRY_OPTIN` is set —
+and note that the PostHog key compiled into the source belongs to upstream
+Bitloops, so anything sent would land in their project rather than ours.
+
+## Build from source
+
+Only needed if you are changing the code.
+
+```bash
+cargo build --release -p bitloops
 ```
-capture → persist → rank → serve → refresh
-```
- 
-> Agents can't reliably change systems they can't model. Bitloops builds and maintains the model.
- 
----
 
-## The Old Way vs The Bitloops Way
- 
-| You're doing this today | With Bitloops |
-| --- | --- |
-| Re-explaining your architecture every session | Substrate captured once. Re-served on every prompt. |
-| Hand-writing CLAUDE.md / `.cursor/rules` / AGENTS.md | Decisions and constraints captured automatically from your agent conversations. |
-| Agent re-implements a util that already exists three folders over | Static analysis + clone detection feeds existing code into pre-edit context. |
-| "Why is this here?" → the prompt is gone | Commit → prompt → rejected alternatives, all traceable. |
-| Five rules files for five agents | One substrate. Claude Code, Cursor, Copilot — same model underneath. |
-| RAG embeddings rebuilt every session | Long-lived daemon. Index is always-on, always-current. |
-| Repository uploaded and stored on a vendor's infra | Runs locally. Code processed, not stored. |
- 
----
+The binary is `target/release/cycloops`. The crate is still named `bitloops`;
+only the binary was renamed. Use `--release` — debug builds overflow the main
+thread's stack on Windows.
 
-## How It Works
- 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│  Your agent (Claude Code / Cursor / Copilot) makes a request         │
-└──────────────────────────────────────────────────────────────────────┘
-                                  ↓
-┌──────────────────────────────────────────────────────────────────────┐
-│  Bitloops hooks capture the prompt, transcript, and tool events      │
-└──────────────────────────────────────────────────────────────────────┘
-                                  ↓
-┌──────────────────────────────────────────────────────────────────────┐
-│  Local daemon updates the codebase graph (files, symbols, deps)      │
-└──────────────────────────────────────────────────────────────────────┘
-                                  ↓
-┌──────────────────────────────────────────────────────────────────────┐
-│  DevQL ranks and serves the right artifacts back into the agent      │
-└──────────────────────────────────────────────────────────────────────┘
-                                  ↓
-┌──────────────────────────────────────────────────────────────────────┐
-│  Commit links to the prompt, model, and decision that produced it    │
-└──────────────────────────────────────────────────────────────────────┘
-```
- 
-Architecture deep-dive → [Docs › Architecture](https://bitloops.com/docs/)
- 
----
+Prerequisites: Rust via [rustup](https://rustup.rs) (the 1.95.0 toolchain is
+pinned in `rust-toolchain.toml` and fetched automatically), plus a C++
+toolchain — Visual Studio Build Tools with "Desktop development with C++" on
+Windows, `xcode-select --install` on macOS, `build-essential pkg-config cmake`
+on Linux. Budget 10–25 minutes and about 10 GB for the first build.
 
-## Who Bitloops Is For
- 
-- **Devs shipping multiple AI-assisted PRs per week** with Claude Code, Cursor, Copilot, or Codex — who've stopped being amazed and started being annoyed.
-- **Anyone maintaining a CLAUDE.md, `.cursor/rules`, or AGENTS.md** and quietly knowing it's already out of date.
-- **Engineering teams** who want a reviewable trail for AI-assisted work — prompts, tool events, decisions, commits — not just diffs.
-- **Platform and DevEx teams** building internal AI workflows who need a typed local substrate for agent context.
----
+## More
 
-## Supported Agents & Languages
- 
-**Agents:**
- 
-- [x] Claude Code
-- [x] Codex
-- [x] Cursor
-- [x] Gemini
-- [x] Copilot
-- [x] OpenCode
+- [Code_Archiver.md](Code_Archiver.md) — what the archiver records, every
+  setting, and troubleshooting
+- [DEPLOY.md](DEPLOY.md) — cutting a release
+- [README.bitloops.md](README.bitloops.md) — the upstream project's own README
 
-**Languages:** 
-- [x] Rust
-- [x] TypeScript / JavaScript
-- [x] Python
-- [x] Go
-- [x] Java
-- [x] C#
-- [x] PHP
-- [x] C++
+## Licence and attribution
 
----
-## Local-First Trust Model
- 
-Your code isn't stored on our infrastructure. The daemon runs on your machine; configuration, repository model, event data, and blobs stay local by default.
- 
-LLM reasoning over commits, code, and conversations is part of the system — that processing requires sending content to a model provider, and an account is required to authenticate it. The line: **your code isn't stored, it is processed.**
- 
---- 
+Apache-2.0, see [LICENSE](LICENSE).
 
-## Demo video
-
-
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=hb8EAWlRjt8" target="_blank">
-    <img src="assets/bitloops_getting_started.png" alt="Bitloops Getting Started" width="640" />
-  </a>
-</p>
-
----
-
-## Documentation
- 
-- 📖 [Quickstart](https://bitloops.com/docs/getting-started/quickstart) — set up and first capture
-- 🔍 [DevQL](https://bitloops.com/docs/concepts/devql) — query the codebase model
-- 🏗️ [Docs home](https://bitloops.com/docs/) — guides, concepts, troubleshooting
-- 🛠️ [Contributing](https://github.com/bitloops/bitloops/blob/main/CONTRIBUTING.md) — rules, dev setup, extension guides
----
- 
-## Community
- 
-- 💬 [GitHub Discussions](https://github.com/bitloops/bitloops/discussions) — questions, ideas, feedback
-- 🐛 [Issues](https://github.com/bitloops/bitloops/issues) — bug reports, feature requests
-- 🔒 [Security](https://github.com/bitloops/bitloops/blob/main/SECURITY.md) — responsible disclosure
-- 🤝 [Code of Conduct](https://github.com/bitloops/bitloops/blob/main/CODE_OF_CONDUCT.md)
-If Bitloops is solving a problem you've felt — **star the repo**. It tells us we're building the right thing, and it tells other devs the project is real.
- 
----
- 
-## License
- 
-Apache-2.0. See [LICENSE](https://github.com/bitloops/bitloops/blob/main/LICENSE).
+Cycloops is a fork of [Bitloops](https://github.com/bitloops/bitloops).
+Essentially all of the code is theirs. This fork adds the code archiver and
+changes five things: the binary name, telemetry off by default, the update
+check pointed at this repository, the branding, and archiver-only mode.
