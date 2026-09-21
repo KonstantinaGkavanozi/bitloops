@@ -52,7 +52,7 @@ fn cleanup_shell_file(path: &Path) -> Result<bool> {
         if line.trim() == SHELL_COMPLETION_COMMENT {
             changed = true;
             idx += 1;
-            if idx < source_lines.len() && source_lines[idx].trim().contains("bitloops completion")
+            if idx < source_lines.len() && source_lines[idx].trim().contains("cycloops completion")
             {
                 idx += 1;
             }
@@ -62,7 +62,7 @@ fn cleanup_shell_file(path: &Path) -> Result<bool> {
             continue;
         }
 
-        if line.trim().contains("bitloops completion") {
+        if line.trim().contains("cycloops completion") {
             changed = true;
             idx += 1;
             continue;

@@ -1,6 +1,6 @@
-//! `bitloops hooks git <verb>` — hidden subcommand dispatcher for git hooks.
+//! `cycloops hooks git <verb>` — hidden subcommand dispatcher for git hooks.
 //!
-//! Git hook scripts installed by `bitloops enable` call this subcommand.
+//! Git hook scripts installed by `cycloops enable` call this subcommand.
 //! All handlers exit 0 on success so git hooks don't block the user.
 
 use std::path::PathBuf;
@@ -171,7 +171,7 @@ pub enum GitHookVerb {
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
-/// Entry point called from `engine::run` for `bitloops hooks git <verb>`.
+/// Entry point called from `engine::run` for `cycloops hooks git <verb>`.
 pub async fn run(args: GitHooksArgs, strategy_registry: &StrategyRegistry) -> Result<()> {
     // All git hooks: skip silently when not inside a git repo.
     let repo_root = match paths::repo_root() {

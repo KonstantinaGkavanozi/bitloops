@@ -55,7 +55,7 @@ fn ensure_sqlite_file_exists_missing_file_errors_with_guidance() {
     let err = ensure_sqlite_file_exists(&missing).expect_err("missing sqlite file must fail");
     let msg = format!("{err:#}");
     assert!(msg.contains("SQLite database file not found"));
-    assert!(msg.contains("bitloops init"));
+    assert!(msg.contains("cycloops init"));
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn ensure_duckdb_file_exists_missing_file_errors_with_guidance() {
     let err = ensure_duckdb_file_exists(&missing).expect_err("missing duckdb file must fail");
     let msg = format!("{err:#}");
     assert!(msg.contains("DuckDB database file not found"));
-    assert!(msg.contains("bitloops init"));
+    assert!(msg.contains("cycloops init"));
 }
 
 #[test]

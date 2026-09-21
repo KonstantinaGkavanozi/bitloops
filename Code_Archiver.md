@@ -1,8 +1,75 @@
 # Code Archiver
 
-The code archiver is a small feature inside Bitloops. Every time an AI agent finishes a turn in a repo Bitloops is tracking, it saves a copy of each file the agent created or modified, together with the name of the model that wrote it.
+The code archiver is a small feature inside this research build of Bitloops. Every time an AI agent finishes a turn in a repo it is tracking, it saves a copy of each file the agent created or modified, together with the name of the model that wrote it.
 
-It is built into the Bitloops CLI (`bitloops/src/host/checkpoints/lifecycle/code_export.rs`). There is no separate plugin or Python hook to install.
+It is built into the CLI (`bitloops/src/host/checkpoints/lifecycle/code_export.rs`). There is no separate plugin or Python hook to install.
+
+## The binary is called `cycloops`
+
+This build ships as `cycloops`, not `bitloops`, so it can be installed alongside an official Bitloops without either one overwriting the other's agent hooks. Everywhere the upstream documentation says `bitloops <command>`, use `cycloops <command>`.
+
+The **environment variables keep their `BITLOOPS_` prefix** — they are read by unchanged upstream code. So the command is `cycloops` but the settings are `BITLOOPS_CODE_EXPORT_DIR` and friends. This trips people up; it is not a typo.
+
+## Install
+
+One command. No Rust, no build tools, no replacing an existing binary.
+
+**macOS / Linux**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.sh | bash
+```
+
+**Windows (PowerShell)**
+
+```powershell
+irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
+```
+
+**Windows (CMD)**
+
+```cmd
+curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.cmd -o install.cmd && install.cmd && del install.cmd
+```
+
+The installer downloads the latest release for your platform, checks it against the published SHA-256, and puts `cycloops` on your PATH. Telemetry is off in the build itself, so the installer sets nothing for it. On Windows it also installs `duckdb.dll` next to the binary; keep the two together.
+
+Then, in a **new** terminal:
+
+```bash
+cd path/to/your/repo
+cycloops init                # tick the agents you use
+```
+
+There is no daemon to start: the installer turns on archiver-only mode.
+
+## Archiver-only mode
+
+With `CYCLOOPS_ARCHIVER_ONLY` set, the hook saves the turn's code and stops.
+Nothing is queued, so the daemon, DuckDB, checkpoints, sync and ingest never
+run, and `init` asks only which agents to hook — no embedding prompts, no
+final checklist.
+
+This is the mode to hand to participants. It removes every failure listed
+under Troubleshooting except "the binary is not on PATH": no database locks,
+no daemon that must be restarted after an upgrade, no 45-second readiness
+timeout.
+
+Unset the variable to get the full Bitloops CLI back, in which case the rest
+of this document's daemon guidance applies and you start it with
+`cycloops daemon start`. The choices `init` offers in that mode are listed
+below.
+
+To install a specific version instead of the latest:
+
+```bash
+CYCLOOPS_VERSION=v0.0.31-archiver.1 curl -fsSL .../install.sh | bash
+```
+```powershell
+.\install.ps1 -Version v0.0.31-archiver.1
+```
+
+Run `cycloops --version` and note what it prints. For a study, record that string alongside the archived data — it identifies the exact build that produced it.
 
 ## What it produces
 
@@ -15,7 +82,7 @@ One JSON file per changed file, per turn:
 For example, if the agent edits `src/app.rs` in a repo called `my-project`:
 
 ```
-~/Desktop/bitloops code/my-project/src/1789900000-123456__app.rs.json
+~/Desktop/cycloops-code/my-project/src/1789900000-123456__app.rs.json
 ```
 
 Each file contains:
@@ -35,22 +102,24 @@ Behaviour worth knowing:
 - Each save gets its own timestamp, so older versions of a file are kept next to the newer ones.
 - Files that can't be read as text (binaries, files removed again) are silently skipped.
 - Archiving never blocks or fails the agent's turn. If a write fails, that file is skipped and nothing is reported.
-- If Bitloops cannot work out the model name, `"model"` is `"unknown"`.
-- There is **no ignore list**. A changed `.env` or key file is archived like any other file, in plain text. Keep the export folder somewhere private.
+- If the model name cannot be worked out, `"model"` is `"unknown"`.
+- There is **no ignore list**. A changed `.env` or key file is archived like any other file, in plain text.
+
+That last point matters if anyone outside the team runs this on their own repositories. Say so in your consent material, or add a denylist before handing the tool out.
 
 ## Settings
 
-Two optional environment variables:
-
 | Variable | Effect |
 |---|---|
-| `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default: `~/Desktop/bitloops code` |
+| `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default: `~/Desktop/cycloops-code` |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off. It is on by default. |
 | `BITLOOPS_CODE_EXPORT_TRACE` | Any non-empty value makes the archiver print to stderr which files it saw and why each was saved or skipped. For troubleshooting. |
+| `CYCLOOPS_ARCHIVER_ONLY` | Set by the installer. Archive turns and nothing else: no daemon, no database, no sync or ingest, and `init` stops asking about them. Unset it for the full Bitloops pipeline. |
+| `BITLOOPS_TELEMETRY_OPTIN` | Telemetry is off in this build and needs no switch. Setting this to a non-empty value turns reporting on; note the compiled-in PostHog key belongs to upstream Bitloops, so the data would land in their project. `BITLOOPS_TELEMETRY_OPTOUT` still works and overrides it. |
 
-**How it runs:** at the end of each agent turn, the `bitloops hooks ...` command that your agent launches archives the changed files itself. It needs neither the daemon nor the database. Bitloops also queues the turn for its daemon, which archives too, but skips anything the hook already saved with the same content. So the variables must be set in the environment of the **agent** (the terminal or app you start Claude Code, Cursor, etc. from), not just any shell. If you also run the daemon, restart it after changing the variables or replacing the binary, because a running daemon keeps using the old ones.
+**Where to set them.** At the end of each agent turn, the `cycloops hooks ...` command that your agent launches archives the changed files itself. It needs neither the daemon nor the database. It also queues the turn for the daemon, which archives too but skips anything the hook already saved with the same content. So the variables must be set in the environment of the **agent** — the terminal or app you start Claude Code, Cursor, etc. from — not just any shell. If you run the daemon, restart it after changing the variables, because a running daemon keeps using the old ones.
 
-Setting them:
+The installer writes `BITLOOPS_CODE_EXPORT_DIR` to your shell profile on macOS/Linux, or to your user environment on Windows, if you passed one. To set the export directory afterwards:
 
 - **Windows (PowerShell), permanent:**
   ```powershell
@@ -62,159 +131,78 @@ Setting them:
   export BITLOOPS_CODE_EXPORT_DIR="$HOME/bitloops-archive"
   ```
 - **macOS, agent launched from the Dock or Spotlight (not a terminal):** shell files aren't read. Use `launchctl setenv BITLOOPS_CODE_EXPORT_DIR "$HOME/bitloops-archive"` and restart the app.
-- On Windows, if your Desktop is redirected (for example by OneDrive), the default `%USERPROFILE%\Desktop\bitloops code` may not be your visible Desktop. Set `BITLOOPS_CODE_EXPORT_DIR` explicitly.
+- On Windows, if your Desktop is redirected (for example by OneDrive), the default `%USERPROFILE%\Desktop\cycloops-code` may not be your visible Desktop. Set `BITLOOPS_CODE_EXPORT_DIR` explicitly.
 
-## Important: it is not in the released version
+## Choices you will be asked to make (full mode only)
 
-The archiver was added after the public Bitloops release (v0.0.31). Installing Bitloops with the official installer does **not** give you this feature. You have to build the CLI from this repository at commit `1fae5d9` ("code archiving") or later, and put that build in place of the installed `bitloops` binary.
+In archiver-only mode `init` asks only which agents to hook, and the table below does not apply.
 
-The overall recipe is the same on every OS:
-
-1. Install the official release once (this creates the default config and the DuckDB runtime library the binary needs).
-2. Build this repo in release mode.
-3. Replace the installed `bitloops` binary with your build.
-4. Run `bitloops init` in each repo you want archived.
-
-## Choices you will be asked to make
-
-Setup is interactive. Running `bitloops init` in a repo asks a series of questions, and the installer can ask some too. Run it in a real terminal, because it needs one to show the prompts. You can accept the defaults by pressing Enter. For the code archiver only the first question really matters.
+`cycloops init` is interactive, so run it in a real terminal. You can accept the defaults by pressing Enter. For the code archiver only the first question really matters.
 
 | Prompt | What it means | For the archiver |
 |---|---|---|
-| **Select agents to integrate** (space to tick, Enter to confirm) | Which AI agents get Bitloops hooks installed in this repo (Claude Code, Cursor, Codex, Gemini, Opencode, Copilot, as offered on your machine). | **Tick every agent you use in this repo.** Archiving runs from that agent's hooks, so an agent you don't tick is never archived. |
+| **Select agents to integrate** (space to tick, Enter to confirm) | Which AI agents get hooks installed in this repo (Claude Code, Cursor, Codex, Gemini, Opencode, Copilot, as offered on your machine). | **Tick every agent you use in this repo.** Archiving runs from that agent's hooks, so an agent you don't tick is never archived. |
 | **Enable DevQL Guidance** (a checkbox under the agent list) | Lets Bitloops feed codebase context back to the agent. | Not needed. Leave it as you like. |
 | **Configure embeddings**: Bitloops Cloud / Local embeddings / Skip for now | Powers semantic code search. Cloud opens a browser sign-in. Local needs about 4 GB RAM and a GPU is recommended. | Choose **Skip for now**. |
-| **Configure summary embeddings**: Enable / Skip for now (and, if code embeddings were skipped, a provider choice: Cloud / Local / Skip) | Semantic search over generated summaries. | Choose **Skip for now**. |
-| **Final setup checklist**: Sync codebase, Import commit history, Enable anonymous telemetry, Start Bitloops daemon automatically when you sign in | Optional extras. Press Enter for the defaults, type option numbers, or `all` / `none`. | Sync and Import history are not needed for archiving and can take a while on a large repo. Telemetry is your choice. Auto-start is a convenience only; on Windows it has not been checked. |
+| **Configure summary embeddings**: Enable / Skip for now | Semantic search over generated summaries. | Choose **Skip for now**. |
+| **Final setup checklist**: Sync codebase, Import commit history, Enable anonymous telemetry, Start daemon automatically when you sign in | Optional extras. Press Enter for the defaults, type option numbers, or `all` / `none`. | Sync and Import history are not needed for archiving and can take a while on a large repo. Auto-start is a convenience only; on Windows it has not been checked. |
 
-The exact list can differ a little between versions and depending on what is already configured.
-
-The installer has its own choice. With `-DefaultConfig` (Windows) or `--default-config` (macOS/Linux) it applies Bitloops's default configuration without asking. Without that flag, run `bitloops configure --web` afterwards to set things up by hand.
-
-Skipping embeddings has no effect on archiving. You can run `bitloops init` again later to change these answers.
-
-## Setup on Windows
-
-This is the path that has been run and checked.
-
-**Prerequisites**
-
-- Rust via [rustup](https://rustup.rs). The repo pins the toolchain (1.95.0) in `rust-toolchain.toml`, and rustup fetches it automatically.
-- **Visual Studio Build Tools** with the **"Desktop development with C++"** workload. Without it every build fails with `linker link.exe not found`. Git Bash also ships a `link.exe` that is *not* the compiler's linker and causes a confusing `link: extra operand` error. Build from PowerShell or a "x64 Native Tools" prompt.
-- About 10 GB of free disk space, and 10 to 25 minutes for the first release build.
-
-**Steps**
-
-1. Install the official release (PowerShell):
-   ```powershell
-   & ([scriptblock]::Create((irm https://bitloops.com/install.ps1))) -DefaultConfig
-   ```
-   It installs to `%USERPROFILE%\.bitloops\bin` and adds that folder to your PATH. If the last step reports `Bitloops daemon did not become ready within 45 seconds`, see Troubleshooting. Your config and databases are already created by then, so you can carry on.
-2. Build, from the repo root, in a shell where the C++ tools are loaded (open "x64 Native Tools Command Prompt for VS 2022", or run `vcvars64.bat` first):
-   ```powershell
-   cargo build --release -p bitloops
-   ```
-   The result is `target\release\bitloops.exe`.
-   Use `--release`. Debug builds of this project overflow the main thread's stack on Windows and won't start.
-3. Replace the installed binary:
-   ```powershell
-   $bin = "$env:USERPROFILE\.bitloops\bin"
-   Copy-Item "$bin\bitloops.exe" "$bin\bitloops.exe.bak"          # backup
-   Copy-Item target\release\bitloops.exe "$bin\bitloops.exe" -Force
-   ```
-   If Windows says the file is in use, a Bitloops daemon is still running. Stop it (Ctrl+C in its terminal, or `bitloops daemon stop`) and copy again. Renaming the running file first (`Move-Item`) also works. Keep `duckdb.dll` where it is, next to `bitloops.exe`.
-4. Open a **new** terminal (old ones don't see the PATH change) and check:
-   ```powershell
-   bitloops --version      # the "commit:" line should be 1fae5d9 or later
-   ```
-5. Start the daemon in a terminal and leave it open:
-   ```powershell
-   bitloops daemon start
-   ```
-6. In each repo you want archived, in another terminal:
-   ```powershell
-   cd path\to\your\repo
-   bitloops init
-   ```
-   `init` asks several questions, described in "Choices you will be asked to make" above. Tick the agent(s) you use, and choose **Skip for now** for both embeddings prompts.
-
-## Setup on macOS
-
-Not run on a Mac yet. These steps follow the repo's own build docs (`DEVELOPMENT.md`) and install script.
-
-**Prerequisites**
-
-- Xcode Command Line Tools: `xcode-select --install`
-- Rust via rustup: `curl https://sh.rustup.rs -sSf | sh`
-- About 10 GB of free disk space.
-
-**Steps**
-
-1. Install the official release:
-   ```bash
-   curl -fsSL https://bitloops.com/install.sh | bash -s -- --default-config
-   ```
-   It installs to `/usr/local/bin`, or `~/.local/bin` if that isn't writable. `libduckdb.dylib` is installed next to the binary.
-2. One-time build setup, from the repo root (skip if `bitloops/config/dashboard_urls.json` already exists):
-   ```bash
-   cp bitloops/config/dashboard_urls.template.json bitloops/config/dashboard_urls.json
-   ```
-3. Build:
-   ```bash
-   cargo build --release --manifest-path bitloops/Cargo.toml
-   ```
-   The result is `target/release/bitloops`.
-4. Replace the installed binary (use the directory the installer printed):
-   ```bash
-   cp "$(command -v bitloops)" "$(command -v bitloops).bak"
-   cp target/release/bitloops "$(command -v bitloops)"
-   ```
-   If macOS refuses to run the copied binary, sign it locally: `codesign --force --sign - "$(command -v bitloops)"`.
-   The repo also has `cargo dev-install`, which installs a build into your Cargo bin directory and signs it automatically. If you use it, make sure that directory comes first on your PATH.
-5. Check the version, start the daemon and run `bitloops init` in each repo, exactly as in the Windows steps 4 to 6 (`bitloops --version`, `bitloops daemon start`, `bitloops init`). Answer the setup questions as described in "Choices you will be asked to make".
-
-## Setup on Linux
-
-Not run on Linux yet. Same approach as macOS.
-
-**Prerequisites** (typical for this project's dependencies, not confirmed)
-
-- A C toolchain, `pkg-config` and `cmake`. On Debian/Ubuntu: `sudo apt install build-essential pkg-config cmake curl`
-- Rust via rustup: `curl https://sh.rustup.rs -sSf | sh`
-- About 10 GB of free disk space.
-
-**Steps**
-
-Follow the macOS steps 1 to 5. The installer places `libduckdb.so` next to the binary, and there is no code signing step.
-
-On unusual Linux targets (for example musl), the prebuilt DuckDB library doesn't exist. `DEVELOPMENT.md` says to build with `--features duckdb-bundled` instead.
+The exact list can differ a little depending on what is already configured. Skipping embeddings has no effect on archiving, and you can run `cycloops init` again later to change these answers.
 
 ## Checking that it works
 
-1. Run `bitloops --version` and confirm the commit is `1fae5d9` or later.
-2. In a repo where you ran `bitloops init`, ask your agent to create or change a file.
-3. When the turn ends, look in the export folder (default `~/Desktop/bitloops code/<repo name>/`). There should be a `.json` file for each changed file.
+1. Run `cycloops --version` and confirm it is the build you expect.
+2. In a repo where you ran `cycloops init`, ask your agent to create or change a file.
+3. When the turn ends, look in the export folder (default `~/Desktop/cycloops-code/<repo name>/`). There should be a `.json` file for each changed file.
 
-The core logic (writing `{model, code}` files, the disable switch, the `unknown` model fallback, skipping unchanged files) has unit tests in `code_export.rs`. They pass on Windows when the file is built as its own small crate. On Windows the hook-side archiving was also run by hand against a temporary folder: the first run saved every uncommitted file and a second run saved none. A full run with a real agent turn has not been confirmed yet.
+The core logic — writing `{model, code}` files, the disable switch, the `unknown` model fallback, skipping unchanged files — has unit tests in `code_export.rs`. The hook-side archiving has been exercised by hand on Windows against a temporary folder: the first run saved every uncommitted file and a second run saved none. A full run with a real agent turn has not been confirmed yet.
 
 ## Troubleshooting
 
 - **No files appear.**
-  - Run `bitloops --version` from the same terminal your agent uses. A commit older than `1fae5d9` means the old binary is still first on PATH (`where bitloops` on Windows, `which -a bitloops` on macOS/Linux).
+  - Run `cycloops --version` from the same terminal your agent uses. If the command isn't found there, the PATH change hasn't reached it (`where cycloops` on Windows, `which -a cycloops` on macOS/Linux).
   - Make sure `BITLOOPS_CODE_EXPORT_DISABLE` is not set.
-  - Make sure you ran `bitloops init` in that repo.
+  - Make sure you ran `cycloops init` in that repo, and ticked the agent you are actually using.
   - Check the folder you set in `BITLOOPS_CODE_EXPORT_DIR`.
   - Set `BITLOOPS_CODE_EXPORT_TRACE=1` in the agent's environment and look at the hook's stderr. It lists the changed files it found and says why each was saved or skipped.
-- **`configuring SQLite pragmas`, `locking protocol` or DuckDB "file is being used by another process" messages (Windows).** Bitloops' own database is locked by another Bitloops process, usually the running daemon. This can stop Bitloops from recording that turn in its history. It does not stop archiving, because the hook archives before it touches any database.
-- **The same unchanged files keep being saved again.** A daemon started before you replaced the binary is still running the old code. Stop it and start it again.
-- **`bitloops` is not recognized (Windows).** The installer changes PATH for new terminals only. Open a new one, or call `%USERPROFILE%\.bitloops\bin\bitloops.exe` directly.
-- **`Bitloops daemon did not become ready within 45 seconds` (Windows).** Starting the daemon in the background (`bitloops daemon start -d`, which the installer uses) can fail. Running `bitloops daemon start` in a terminal and leaving it open works. This does not affect archiving.
-- **`linker link.exe not found` or `link: extra operand` (Windows build).** Install the Visual Studio C++ Build Tools and build from PowerShell or a Native Tools prompt, not Git Bash.
-- **`no space on device` during the build.** Free up disk space. The `target` folder grows to several GB.
-- **`cargo test -p bitloops` doesn't compile on Windows.** Some existing tests use Unix-only code. This doesn't affect building or running Bitloops.
+- **Hooks call `bitloops` instead of `cycloops`.** The repo was initialised by an official Bitloops install. Run `cycloops init` again to install this build's hooks; they coexist rather than replacing each other.
+- **`configuring SQLite pragmas`, `locking protocol` or DuckDB "file is being used by another process" (Windows).** The database is locked by another process, usually the running daemon. This can stop the turn being recorded in history. It does not stop archiving, because the hook archives before it touches any database.
+- **The same unchanged files keep being saved again.** A daemon started before the last upgrade is still running the old code. Stop it and start it again.
+- **macOS refuses to run the binary.** Releases are ad-hoc signed, not notarized. The installer clears the quarantine attribute; if you moved the binary by hand, run `xattr -dr com.apple.quarantine "$(command -v cycloops)"`.
+- **Windows says the file is in use during an upgrade.** A daemon is still running. Stop it (`cycloops daemon stop`, or Ctrl+C in its terminal) and run the installer again.
+- **`Bitloops daemon did not become ready within 45 seconds`.** Starting the daemon in the background can fail. Running `cycloops daemon start` in a terminal and leaving it open works. This does not affect archiving.
 
 ## Turning it off or undoing it
 
 - Turn off archiving: set `BITLOOPS_CODE_EXPORT_DISABLE=1` in the agent's environment.
-- Go back to the released CLI: copy the `.bak` file over the installed `bitloops` binary.
-- Delete the archive: remove the export folder. Bitloops never reads it back.
+- Stop capture in one repo: `cycloops disable` in that repo.
+- Remove hooks and other artefacts: `cycloops uninstall`. It is interactive and asks whether to clean the system, known repositories, or both.
+- Remove the binary: delete it from the install directory (`~/.local/bin/cycloops`, or `%USERPROFILE%\.cycloops\bin` on Windows).
+- Delete the archive: remove the export folder. Nothing ever reads it back.
+
+## Building from source
+
+Only needed if you are changing the code. Releases are built by `.github/workflows/release.yml` on any `v*` tag.
+
+**Prerequisites**
+
+- Rust via [rustup](https://rustup.rs). The toolchain (1.95.0) is pinned in `rust-toolchain.toml` and fetched automatically.
+- Windows: **Visual Studio Build Tools** with the **"Desktop development with C++"** workload. Without it every build fails with `linker link.exe not found`. Git Bash ships a `link.exe` that is *not* the compiler's linker and causes a confusing `link: extra operand` error — build from PowerShell or an "x64 Native Tools" prompt.
+- macOS: `xcode-select --install`.
+- Linux: `sudo apt install build-essential pkg-config cmake curl`.
+- About 10 GB of free disk space, and 10 to 25 minutes for the first release build.
+
+```bash
+cargo build --release -p bitloops
+```
+
+The binary is `target/release/cycloops` (`cycloops.exe` on Windows). The crate is still named `bitloops` — only the binary was renamed. Use `--release`: debug builds overflow the main thread's stack on Windows and won't start.
+
+On unusual Linux targets (musl, for example) the prebuilt DuckDB library doesn't exist; build with `--features duckdb-bundled`, as the release workflow does for every non-Windows target.
+
+Cutting a release:
+
+```bash
+git tag v0.0.31-archiver.2
+git push origin v0.0.31-archiver.2
+```

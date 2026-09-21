@@ -262,14 +262,14 @@ fn find_policy_location(start: &Path, git_root: Option<&Path>) -> Option<RepoPol
 fn missing_repo_policy_error(git_root: Option<&Path>, start: &Path) -> Result<RepoPolicySnapshot> {
     if let Some(git_root) = git_root {
         anyhow::bail!(
-            "Bitloops project config not found from {} up to git root {}. Run `bitloops init` in this directory or a parent project directory.",
+            "Bitloops project config not found from {} up to git root {}. Run `cycloops init` in this directory or a parent project directory.",
             start.display(),
             git_root.display()
         );
     }
 
     anyhow::bail!(
-        "No git repository found above {}. Run Bitloops inside a git repository and use `bitloops init`.",
+        "No git repository found above {}. Run Bitloops inside a git repository and use `cycloops init`.",
         start.display()
     )
 }

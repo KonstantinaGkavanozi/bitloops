@@ -26,7 +26,7 @@ use system::{
 };
 use targets::{ALL_TARGETS, UninstallTarget, collect_requested_targets, validate_scope_flags};
 
-const NO_FLAGS_ERROR: &str = "`bitloops uninstall` without flags requires an interactive terminal; pass explicit flags such as `--full` or `--git-hooks`";
+const NO_FLAGS_ERROR: &str = "`cycloops uninstall` without flags requires an interactive terminal; pass explicit flags such as `--full` or `--git-hooks`";
 
 type UninstallSelector =
     dyn Fn(&[UninstallTarget]) -> std::result::Result<Vec<UninstallTarget>, String>;
@@ -141,5 +141,5 @@ async fn run_with_context(
 mod tests;
 
 fn is_daemon_not_running_error(err: &anyhow::Error) -> bool {
-    err.to_string() == "Bitloops daemon is not running. Start it with `bitloops daemon start`."
+    err.to_string() == "Bitloops daemon is not running. Start it with `cycloops daemon start`."
 }

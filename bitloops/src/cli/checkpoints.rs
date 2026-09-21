@@ -7,7 +7,7 @@ mod status_impl;
 pub use status_impl::StatusArgs;
 
 pub const MISSING_SUBCOMMAND_MESSAGE: &str =
-    "missing subcommand. Use `bitloops checkpoints status`";
+    "missing subcommand. Use `cycloops checkpoints status`";
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct CheckpointsArgs {

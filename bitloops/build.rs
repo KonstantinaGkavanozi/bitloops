@@ -123,12 +123,12 @@ fn emit_macos_runtime_rpaths() {
     }
 
     // `libduckdb-sys` can place the downloaded runtime in `target/<profile>/deps`,
-    // but its own linker args do not propagate to the final `bitloops` binary on
+    // but its own linker args do not propagate to the final `cycloops` binary on
     // macOS. Teach the executable to look in both the Cargo build layout and the
     // installed layout (`cargo dev-install` stages the dylib next to the binary).
     for rpath in ["@executable_path", "@executable_path/deps"] {
-        println!("cargo:rustc-link-arg-bin=bitloops=-rpath");
-        println!("cargo:rustc-link-arg-bin=bitloops={rpath}");
+        println!("cargo:rustc-link-arg-bin=cycloops=-rpath");
+        println!("cargo:rustc-link-arg-bin=cycloops={rpath}");
     }
 
     // Test executables live under `target/<profile>/deps`, alongside the copied

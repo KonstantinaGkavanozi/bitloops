@@ -6,7 +6,7 @@ use serde_json::{Map, Value, json};
 
 const HOOKS_FILE_NAME: &str = "hooks.json";
 
-const BITLOOPS_HOOK_PREFIX: &str = "bitloops hooks cursor ";
+const BITLOOPS_HOOK_PREFIX: &str = "cycloops hooks cursor ";
 const LOCAL_DEV_HOOK_PREFIX: &str = "cargo run -- hooks cursor ";
 const MANAGED_HOOK_PREFIXES: [&str; 2] = [BITLOOPS_HOOK_PREFIX, LOCAL_DEV_HOOK_PREFIX];
 
@@ -441,7 +441,7 @@ mod tests {
                 .expect("read written hooks.json");
             assert!(output.contains("cargo run -- hooks cursor session-start"));
             assert!(output.contains("cargo run -- hooks cursor stop"));
-            assert!(!output.contains("bitloops hooks cursor session-start"));
+            assert!(!output.contains("cycloops hooks cursor session-start"));
         });
     }
 
@@ -468,7 +468,7 @@ mod tests {
             let stop_count = stop
                 .iter()
                 .filter_map(command_of)
-                .filter(|command| *command == "bitloops hooks cursor stop")
+                .filter(|command| *command == "cycloops hooks cursor stop")
                 .count();
             assert_eq!(stop_count, 1, "force should keep one managed stop hook");
         });
@@ -485,13 +485,13 @@ mod tests {
                 r#"{
   "version": 1,
   "hooks": {
-    "sessionStart": [{"command": "bitloops hooks cursor session-start"}],
-    "sessionEnd": [{"command": "bitloops hooks cursor session-end"}],
-    "beforeSubmitPrompt": [{"command": "bitloops hooks cursor before-submit-prompt"}],
-    "stop": [{"command": "bitloops hooks cursor stop"}],
-    "preCompact": [{"command": "bitloops hooks cursor pre-compact"}],
-    "subagentStart": [{"command": "bitloops hooks cursor subagent-start"}],
-    "subagentStop": [{"command": "bitloops hooks cursor subagent-stop"}]
+    "sessionStart": [{"command": "cycloops hooks cursor session-start"}],
+    "sessionEnd": [{"command": "cycloops hooks cursor session-end"}],
+    "beforeSubmitPrompt": [{"command": "cycloops hooks cursor before-submit-prompt"}],
+    "stop": [{"command": "cycloops hooks cursor stop"}],
+    "preCompact": [{"command": "cycloops hooks cursor pre-compact"}],
+    "subagentStart": [{"command": "cycloops hooks cursor subagent-start"}],
+    "subagentStop": [{"command": "cycloops hooks cursor subagent-stop"}]
   }
 }
 "#,
@@ -550,7 +550,7 @@ mod tests {
             let seeded = r#"{
   "version": 1,
   "hooks": {
-    "sessionStart": [{"command": "bitloops hooks cursor session-start"}, {"command": "echo custom"}]
+    "sessionStart": [{"command": "cycloops hooks cursor session-start"}, {"command": "echo custom"}]
   }
 }
 "#;
@@ -559,7 +559,7 @@ mod tests {
             uninstall_hooks_at(dir.path()).expect("uninstall");
             let output = fs::read_to_string(hooks_path).expect("read");
             assert!(output.contains("echo custom"));
-            assert!(!output.contains("bitloops hooks cursor session-start"));
+            assert!(!output.contains("cycloops hooks cursor session-start"));
         });
     }
 
@@ -600,7 +600,7 @@ mod tests {
             let output =
                 fs::read_to_string(cursor_dir.join("hooks.json")).expect("read written hooks.json");
             assert!(!output.contains("cargo run -- hooks cursor session-start"));
-            assert!(output.contains("bitloops hooks cursor session-start"));
+            assert!(output.contains("cycloops hooks cursor session-start"));
         });
     }
 
@@ -617,7 +617,7 @@ mod tests {
   "hooks": {
     "stop": [
       {"command": "cargo run -- hooks cursor stop"},
-      {"command": "bitloops hooks cursor stop"}
+      {"command": "cycloops hooks cursor stop"}
     ]
   }
 }
@@ -644,7 +644,7 @@ mod tests {
             let stop_count = stop
                 .iter()
                 .filter_map(command_of)
-                .filter(|command| *command == "bitloops hooks cursor stop")
+                .filter(|command| *command == "cycloops hooks cursor stop")
                 .count();
             assert_eq!(stop_count, 1);
         });
@@ -670,7 +670,7 @@ mod tests {
             let Ok(content) = fs::read_to_string(&file) else {
                 continue;
             };
-            if !content.contains("bitloops hooks cursor") {
+            if !content.contains("cycloops hooks cursor") {
                 continue;
             }
             let rel = file
@@ -686,7 +686,7 @@ mod tests {
 
         assert!(
             violations.is_empty(),
-            "unexpected `bitloops hooks cursor` usage outside allowlist: {:?}",
+            "unexpected `cycloops hooks cursor` usage outside allowlist: {:?}",
             violations
         );
     }

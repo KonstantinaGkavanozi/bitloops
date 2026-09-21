@@ -9,11 +9,11 @@ use super::workflow_output::{
 };
 use super::{
     AgentSelector, DEFAULT_INIT_INGEST_BACKFILL, InitAgentSelection, InitArgs,
-    InitEmbeddingsSetupSelection, InitFinalSetupPromptOptions, InitSummaryEmbeddingsSetupSelection,
-    choose_embeddings_setup_during_init, choose_final_setup_options,
-    choose_summary_embeddings_setup_during_init, choose_summary_setup_during_init,
-    detect_or_select_agent, ensure_repo_init_files_excluded, normalize_cli_exclusions,
-    normalize_exclude_from_paths,
+    InitEmbeddingsSetupSelection, InitFinalSetupPromptOptions, InitFinalSetupSelection,
+    InitSummaryEmbeddingsSetupSelection, choose_embeddings_setup_during_init,
+    choose_final_setup_options, choose_summary_embeddings_setup_during_init,
+    choose_summary_setup_during_init, detect_or_select_agent, ensure_repo_init_files_excluded,
+    normalize_cli_exclusions, normalize_exclude_from_paths,
 };
 use crate::adapters::agents::AgentAdapterRegistry;
 use crate::cli::embeddings::{
@@ -36,6 +36,7 @@ use crate::config::{
     RepoSemanticEmbeddingPolicy, SemanticCloneEmbeddingMode, SemanticClonesInferenceBindings,
     SemanticSummaryMode, resolve_preferred_daemon_config_path_for_repo,
 };
+use crate::utils::research_mode::archiver_only;
 
 const DEFAULT_INIT_CODE_EMBEDDINGS_PROFILE: &str = "platform_code";
 const DEFAULT_INIT_SUMMARY_GENERATION_PROFILE: &str = "summary_llm";
@@ -65,7 +66,7 @@ pub(crate) async fn run_for_project_root(
 ) -> Result<()> {
     let git_root = crate::cli::enable::find_repo_root(project_root)?;
     if args.backfill.is_some() && args.ingest == Some(false) {
-        bail!("`bitloops init --backfill` cannot be combined with `--ingest=false`.");
+        bail!("`cycloops init --backfill` cannot be combined with `--ingest=false`.");
     }
     let effective_ingest = if args.backfill.is_some() {
         Some(true)
@@ -77,7 +78,7 @@ pub(crate) async fn run_for_project_root(
         && !telemetry_consent::can_prompt_interactively()
     {
         bail!(
-            "`bitloops init` requires explicit `--sync=true|false` and `--ingest=true|false` choices when not running interactively."
+            "`cycloops init` requires explicit `--sync=true|false` and `--ingest=true|false` choices when not running interactively."
         );
     }
 
@@ -109,16 +110,22 @@ pub(crate) async fn run_for_project_root(
     if !scope_exclude.is_empty() || !scope_exclude_from.is_empty() {
         set_scope_exclusions(&local_policy_path, &scope_exclude, &scope_exclude_from)?;
     }
-    let semantic_policy = configure_init_semantic_policy(
-        &local_policy_path,
-        project_root,
-        args.embeddings_runtime,
-        args.summaries_runtime,
-        args.summary_embeddings_mode,
-        out,
-        input,
-    )
-    .await?;
+    // Archiver-only mode needs no embeddings, so skip both provider prompts and
+    // write the same default policy the non-interactive path uses.
+    let semantic_policy = if archiver_only() {
+        ensure_init_semantic_policy(&local_policy_path, project_root)?
+    } else {
+        configure_init_semantic_policy(
+            &local_policy_path,
+            project_root,
+            args.embeddings_runtime,
+            args.summaries_runtime,
+            args.summary_embeddings_mode,
+            out,
+            input,
+        )
+        .await?
+    };
 
     let settings = load_settings(project_root).unwrap_or_default();
     let _git_count = crate::adapters::agents::claude_code::git_hooks::install_git_hooks(
@@ -147,17 +154,28 @@ pub(crate) async fn run_for_project_root(
         out.flush()?;
     }
 
-    let final_setup_selection = choose_final_setup_options(
-        args.sync,
-        out,
-        input,
-        effective_ingest,
-        InitFinalSetupPromptOptions {
-            show_sync_and_ingest: true,
-            show_telemetry: false,
-            show_auto_start_daemon: false,
-        },
-    )?;
+    // Sync and ingest both feed the daemon, which archiver-only mode does not
+    // run, so there is nothing to ask about.
+    let final_setup_selection = if archiver_only() {
+        InitFinalSetupSelection {
+            sync: false,
+            ingest: false,
+            telemetry: false,
+            auto_start_daemon: false,
+        }
+    } else {
+        choose_final_setup_options(
+            args.sync,
+            out,
+            input,
+            effective_ingest,
+            InitFinalSetupPromptOptions {
+                show_sync_and_ingest: true,
+                show_telemetry: false,
+                show_auto_start_daemon: false,
+            },
+        )?
+    };
     let should_sync = final_setup_selection.sync;
     let should_ingest = final_setup_selection.ingest;
     set_devql_producer_settings(&local_policy_path, should_sync, should_ingest)?;
@@ -181,7 +199,7 @@ pub(crate) async fn run_for_project_root(
         }
     }
 
-    if crate::daemon::daemon_url()?.is_some() {
+    if !archiver_only() && crate::daemon::daemon_url()?.is_some() {
         crate::cli::watcher_bootstrap::reconcile_repo_watcher(project_root)
             .await
             .map_err(|err| {
@@ -214,6 +232,15 @@ pub(crate) async fn run_for_project_root(
             },
         )
         .await?;
+    }
+
+    if archiver_only() {
+        writeln!(
+            out,
+            "\nArchiver-only mode ({}). Hooks are installed; nothing else runs.\nNo daemon to start. Archives go to the folder named by BITLOOPS_CODE_EXPORT_DIR.",
+            crate::utils::research_mode::ARCHIVER_ONLY_ENV
+        )?;
+        out.flush()?;
     }
 
     Ok(())

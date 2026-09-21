@@ -408,12 +408,9 @@ fn test_parse_github_release() {
 #[test]
 fn test_update_command() {
     let cmd = update_command();
-    let valid = [
-        "brew upgrade bitloops",
-        "curl -fsSL https://bitloops.io/install.sh | bash",
-    ];
-    assert!(
-        valid.contains(&cmd.as_str()),
+    assert_eq!(
+        cmd,
+        "curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.sh | bash",
         "update_command returned unexpected value: {cmd}"
     );
 }

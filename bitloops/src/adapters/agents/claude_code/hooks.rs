@@ -9,18 +9,18 @@ use std::path::{Path, PathBuf};
 pub const SETTINGS_FILE_NAME: &str = "settings.json";
 
 /// Prefix that identifies a Bitloops-managed hook command.
-const BITLOOPS_HOOK_PREFIX: &str = "bitloops ";
+const BITLOOPS_HOOK_PREFIX: &str = "cycloops ";
 
-// Hook commands — subcommands of `bitloops hooks claude-code`
-const CMD_SESSION_START: &str = "bitloops hooks claude-code session-start";
-const CMD_SESSION_END: &str = "bitloops hooks claude-code session-end";
-const CMD_STOP: &str = "bitloops hooks claude-code stop";
-const CMD_USER_PROMPT_SUBMIT: &str = "bitloops hooks claude-code user-prompt-submit";
-const CMD_PRE_TASK: &str = "bitloops hooks claude-code pre-task";
-const CMD_POST_TASK: &str = "bitloops hooks claude-code post-task";
-const CMD_PRE_TOOL_USE: &str = "bitloops hooks claude-code pre-tool-use";
-const CMD_POST_TOOL_USE: &str = "bitloops hooks claude-code post-tool-use";
-const CMD_POST_TODO: &str = "bitloops hooks claude-code post-todo";
+// Hook commands — subcommands of `cycloops hooks claude-code`
+const CMD_SESSION_START: &str = "cycloops hooks claude-code session-start";
+const CMD_SESSION_END: &str = "cycloops hooks claude-code session-end";
+const CMD_STOP: &str = "cycloops hooks claude-code stop";
+const CMD_USER_PROMPT_SUBMIT: &str = "cycloops hooks claude-code user-prompt-submit";
+const CMD_PRE_TASK: &str = "cycloops hooks claude-code pre-task";
+const CMD_POST_TASK: &str = "cycloops hooks claude-code post-task";
+const CMD_PRE_TOOL_USE: &str = "cycloops hooks claude-code pre-tool-use";
+const CMD_POST_TOOL_USE: &str = "cycloops hooks claude-code post-tool-use";
+const CMD_POST_TODO: &str = "cycloops hooks claude-code post-todo";
 const SESSION_START_MATCHER: &str = "startup|resume|clear|compact";
 const ORDINARY_TOOL_MATCHER: &str = "^(?!Task$|TodoWrite$).+";
 
@@ -440,7 +440,7 @@ mod tests {
             "installed repo skill should contain skill metadata, got:\n{skill}"
         );
         assert!(
-            skill.contains("bitloops devql query"),
+            skill.contains("cycloops devql query"),
             "installed repo skill should contain devql commands, got:\n{skill}"
         );
     }
@@ -589,7 +589,7 @@ mod tests {
   "hooks": {
     "Stop": [
       {"matcher": "", "hooks": [{"type": "command", "command": "echo user hook"}]},
-      {"matcher": "", "hooks": [{"type": "command", "command": "bitloops hooks claude-code stop"}]}
+      {"matcher": "", "hooks": [{"type": "command", "command": "cycloops hooks claude-code stop"}]}
     ]
   }
 }"#,
@@ -612,7 +612,7 @@ mod tests {
   },
   "hooks": {
     "Stop": [
-      {"matcher": "", "hooks": [{"type": "command", "command": "bitloops hooks claude-code stop"}]}
+      {"matcher": "", "hooks": [{"type": "command", "command": "cycloops hooks claude-code stop"}]}
     ]
   }
 }"#,
@@ -635,7 +635,7 @@ mod tests {
   },
   "hooks": {
     "Stop": [
-      {"matcher": "", "hooks": [{"type": "command", "command": "bitloops hooks claude-code stop"}]}
+      {"matcher": "", "hooks": [{"type": "command", "command": "cycloops hooks claude-code stop"}]}
     ]
   }
 }"#,
@@ -779,7 +779,7 @@ mod tests {
             r#"{
   "hooks": {
     "Stop": [
-      {"matcher": "", "hooks": [{"type": "command", "command": "bitloops hooks claude-code stop"}]}
+      {"matcher": "", "hooks": [{"type": "command", "command": "cycloops hooks claude-code stop"}]}
     ],
     "Notification": [
       {"matcher": "", "hooks": [{"type": "command", "command": "echo notification received"}]}
@@ -822,11 +822,11 @@ mod tests {
                 r#"{
   "hooks": {
     "Stop": [
-      {"matcher": "", "hooks": [{"type": "command", "command": "bitloops hooks claude-code stop --stale"}]},
+      {"matcher": "", "hooks": [{"type": "command", "command": "cycloops hooks claude-code stop --stale"}]},
       {"matcher": "", "hooks": [{"type": "command", "command": "echo user stop hook"}]}
     ],
     "PostToolUse": [
-      {"matcher": "Task", "hooks": [{"type": "command", "command": "bitloops hooks claude-code post-task --stale"}]}
+      {"matcher": "Task", "hooks": [{"type": "command", "command": "cycloops hooks claude-code post-task --stale"}]}
     ]
   }
 }"#,
@@ -840,7 +840,7 @@ mod tests {
             assert_hook_exists(&stop, "", &cmd_stop, "fresh Bitloops Stop hook");
             assert_hook_exists(&stop, "", "echo user stop hook", "user Stop hook");
             assert!(
-                !hook_command_exists(&stop, "bitloops hooks claude-code stop --stale"),
+                !hook_command_exists(&stop, "cycloops hooks claude-code stop --stale"),
                 "stale Bitloops stop hook should be removed"
             );
 
@@ -855,7 +855,7 @@ mod tests {
                 !hook_command_exists_with_matcher(
                     &post_tool_use,
                     "Task",
-                    "bitloops hooks claude-code post-task --stale"
+                    "cycloops hooks claude-code post-task --stale"
                 ),
                 "stale Bitloops post-task hook should be removed"
             );
@@ -878,7 +878,7 @@ mod tests {
         assert_hook_exists(
             &session_start,
             "startup|resume|clear|compact",
-            "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' bitloops hooks claude-code session-start",
+            "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' cycloops hooks claude-code session-start",
             "Bitloops SessionStart hook with daemon config override",
         );
 
@@ -886,7 +886,7 @@ mod tests {
         assert_hook_exists(
             &stop,
             "",
-            "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' bitloops hooks claude-code stop",
+            "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' cycloops hooks claude-code stop",
             "Bitloops Stop hook with daemon config override",
         );
     }
@@ -904,7 +904,7 @@ mod tests {
         "hooks": [
           {
             "type": "command",
-            "command": "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' bitloops hooks claude-code stop"
+            "command": "BITLOOPS_DAEMON_CONFIG_PATH_OVERRIDE='/tmp/config root/config.toml' cycloops hooks claude-code stop"
           }
         ]
       }
@@ -927,7 +927,7 @@ mod tests {
             r#"{
   "hooks": {
     "SessionStart": [
-      {"matcher": "", "hooks": [{"type": "command", "command": "bitloops hooks claude-code session-start"}]}
+      {"matcher": "", "hooks": [{"type": "command", "command": "cycloops hooks claude-code session-start"}]}
     ]
   }
 }"#,

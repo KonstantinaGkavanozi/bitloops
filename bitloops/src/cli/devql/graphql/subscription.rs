@@ -421,7 +421,7 @@ pub(crate) async fn next_runtime_event_via_subscription(
 
 fn devql_global_websocket_endpoint() -> Result<String> {
     let runtime_url = daemon::daemon_url()?.context(
-        "Bitloops daemon is not running for this repository. Start it with `bitloops daemon start`.",
+        "Bitloops daemon is not running for this repository. Start it with `cycloops daemon start`.",
     )?;
     let base = runtime_url.trim_end_matches('/');
     if let Some(rest) = base.strip_prefix("https://") {
@@ -435,7 +435,7 @@ fn devql_global_websocket_endpoint() -> Result<String> {
 
 fn devql_runtime_websocket_endpoint() -> Result<String> {
     let runtime_url = daemon::daemon_url()?.context(
-        "Bitloops daemon is not running for this repository. Start it with `bitloops daemon start`.",
+        "Bitloops daemon is not running for this repository. Start it with `cycloops daemon start`.",
     )?;
     let base = runtime_url.trim_end_matches('/');
     if let Some(rest) = base.strip_prefix("https://") {

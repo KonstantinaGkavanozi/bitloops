@@ -81,7 +81,7 @@ pub(crate) async fn run_sync_with_summary_and_stats_and_observer_and_diffs(
                 SyncArtefactDiff::default(),
             )),
             Err(err) if is_missing_sync_schema_error(&err) => Err(err).context(
-                "DevQL sync schema is not initialised. Run `bitloops devql init` before `bitloops devql tasks enqueue --kind sync --validate --status`.",
+                "DevQL sync schema is not initialised. Run `cycloops devql init` before `cycloops devql tasks enqueue --kind sync --validate --status`.",
             ),
             Err(err) => Err(err),
         };
@@ -98,7 +98,7 @@ pub(crate) async fn run_sync_with_summary_and_stats_and_observer_and_diffs(
     {
         Ok((summary, stats, file_diff, artefact_diff)) => Ok((summary, stats, file_diff, artefact_diff)),
         Err(err) if is_missing_sync_schema_error(&err) => Err(err).context(
-            "DevQL sync schema is not initialised. Run `bitloops devql init` before `bitloops devql tasks enqueue --kind sync --status`.",
+            "DevQL sync schema is not initialised. Run `cycloops devql init` before `cycloops devql tasks enqueue --kind sync --status`.",
         ),
         Err(err) => Err(err),
     }

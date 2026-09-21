@@ -62,7 +62,7 @@ fn TestRootCommand_LongHelpIncludesGettingStartedAndAccessibility() {
         "long help should include getting-started guidance"
     );
     assert!(
-        help.contains("bitloops init"),
+        help.contains("cycloops init"),
         "long help should include the init command in getting-started guidance"
     );
     assert!(
@@ -264,7 +264,7 @@ fn TestRootCommand_CustomHelpCommand_TreeOutputSkipsHiddenCommands() {
     let tree = render_custom_help(&[], true);
 
     assert!(
-        tree.lines().next() == Some("bitloops"),
+        tree.lines().next() == Some("cycloops"),
         "tree output should start with root command name"
     );
     assert!(
@@ -292,7 +292,7 @@ fn TestRootCommand_CustomHelpCommand_FallbackToRootOnUnknownTarget() {
     with_env_vars(&[("NO_COLOR", Some("1"))], || {
         let help = render_custom_help(&["not-a-real-command"], false);
         assert!(
-            help.contains("Bitloops CLI"),
+            help.contains("Cycloops CLI"),
             "unknown help target should fallback to root command help"
         );
     });
@@ -455,7 +455,7 @@ fn TestRootCommand_CompletionCommandOutputsScripts() {
     write_completion(&mut bash, CompletionShell::Bash).expect("bash completion should render");
     let bash = String::from_utf8(bash).expect("bash completion utf8");
     assert!(
-        bash.contains("bitloops"),
+        bash.contains("cycloops"),
         "bash completion should mention binary name"
     );
     assert!(
@@ -467,7 +467,7 @@ fn TestRootCommand_CompletionCommandOutputsScripts() {
     write_completion(&mut zsh, CompletionShell::Zsh).expect("zsh completion should render");
     let zsh = String::from_utf8(zsh).expect("zsh completion utf8");
     assert!(
-        zsh.contains("bitloops"),
+        zsh.contains("cycloops"),
         "zsh completion should mention binary name"
     );
     assert!(
@@ -479,11 +479,11 @@ fn TestRootCommand_CompletionCommandOutputsScripts() {
     write_completion(&mut fish, CompletionShell::Fish).expect("fish completion should render");
     let fish = String::from_utf8(fish).expect("fish completion utf8");
     assert!(
-        fish.contains("bitloops"),
+        fish.contains("cycloops"),
         "fish completion should mention binary name"
     );
     assert!(
-        fish.contains("complete -c bitloops"),
+        fish.contains("complete -c cycloops"),
         "fish completion should contain fish completion entries"
     );
 }
@@ -513,7 +513,7 @@ fn TestRootCommand_CurlBashPostInstall_WiresShellCompletionForSupportedShell() {
                 "rc file should contain shell completion comment"
             );
             assert!(
-                content.contains("bitloops completion zsh"),
+                content.contains("cycloops completion zsh"),
                 "rc file should contain zsh completion command"
             );
         },
@@ -625,7 +625,7 @@ fn TestRootCommand_VersionOutput() {
             "version output should include the brand mark"
         );
         assert!(
-            rendered.contains("Bitloops CLI v0.0.10\n"),
+            rendered.contains("Cycloops CLI v0.0.10\n"),
             "version output should include the formatted version header"
         );
         assert!(
@@ -674,7 +674,7 @@ fn TestRootCommand_SendAnalytics_ExactArgsValidation() {
 fn TestPersistentPostRun_SkipsHiddenParent() {
     let root = Cli::command();
 
-    // Find the leaf command: bitloops hooks git post-commit.
+    // Find the leaf command: cycloops hooks git post-commit.
     // This exercises the real command tree where "hooks" is hidden but descendants are not.
     let hooks = find_subcommand(&root, "hooks");
     let git = find_subcommand(hooks, "git");

@@ -513,7 +513,7 @@ fn current_state_follow_up_failure_message(
 ) -> String {
     format!(
         "sync task completed but current-state consumer follow-up work failed for repo `{repo_id}` \
-(failed runs increased from {} to {}). Inspect with `bitloops daemon status`.",
+(failed runs increased from {} to {}). Inspect with `cycloops daemon status`.",
         baseline.current_state_failed_runs, status.state.failed_runs
     )
 }
@@ -553,7 +553,7 @@ pub(super) fn enrichment_follow_up_failure_message(
             message.push_str(&format!(" error={error}"));
         }
     }
-    message.push_str(". Inspect with `bitloops daemon enrichments status`.");
+    message.push_str(". Inspect with `cycloops daemon enrichments status`.");
     message
 }
 
@@ -636,7 +636,7 @@ async fn fetch_schema_sdl_via_daemon(
     }
 
     let daemon_url = daemon::daemon_url()?
-        .context("Bitloops daemon is not running. Start it with `bitloops daemon start`.")?;
+        .context("Bitloops daemon is not running. Start it with `cycloops daemon start`.")?;
     let client = daemon::daemon_http_client(&daemon_url)?;
     let endpoint = format!("{}{}", daemon_url.trim_end_matches('/'), endpoint_path);
 
@@ -764,7 +764,7 @@ async fn ensure_daemon_available_for_tasks(
     }
 
     if matches!(policy, DaemonStartPolicy::RequireRunning) {
-        bail!("Bitloops daemon is not running. Start it with `bitloops daemon start`.");
+        bail!("Bitloops daemon is not running. Start it with `cycloops daemon start`.");
     }
 
     let report = daemon::status().await?;

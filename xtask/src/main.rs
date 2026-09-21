@@ -126,7 +126,7 @@ fn run_dev_install() -> Result<(), String> {
         &["install", "--path", "bitloops", "--force", "--locked"],
     )?;
 
-    let binary_path = installed_binary_path("bitloops")?;
+    let binary_path = installed_binary_path("cycloops")?;
     stage_duckdb_runtime_for_installed_binary(&workspace_root, &binary_path)?;
 
     if should_sign() {

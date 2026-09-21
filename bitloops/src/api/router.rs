@@ -117,8 +117,8 @@ const BUNDLE_UPDATE_PROMPT_SCRIPT: &str = r##"<script id="bitloops-bundle-update
     updateButton.id = "bitloops-update-bundle-btn";
     updateButton.type = "button";
     updateButton.textContent = "Update dashboard bundle";
-    updateButton.style.background = "#7404e4";
-    updateButton.style.color = "#f8fafc";
+    updateButton.style.background = "#00CBC4";
+    updateButton.style.color = "#0f172a";
     updateButton.style.border = "0";
     updateButton.style.padding = "8px 12px";
     updateButton.style.borderRadius = "8px";

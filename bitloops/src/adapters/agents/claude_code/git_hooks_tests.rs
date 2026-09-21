@@ -263,40 +263,40 @@ fn test_extract_command_line() {
     let cases = vec![
         (
             "standard hook",
-            "#!/bin/sh\n# Bitloops CLI hooks\nbitloops hooks git post-commit 2>/dev/null || true\n",
-            "bitloops hooks git post-commit 2>/dev/null || true",
+            "#!/bin/sh\n# Bitloops CLI hooks\ncycloops hooks git post-commit 2>/dev/null || true\n",
+            "cycloops hooks git post-commit 2>/dev/null || true",
         ),
         (
             "multiple comments",
-            "#!/bin/sh\n# comment 1\n# comment 2\nbitloops hooks git pre-push \"$1\" || true\n",
-            "bitloops hooks git pre-push \"$1\" || true",
+            "#!/bin/sh\n# comment 1\n# comment 2\ncycloops hooks git pre-push \"$1\" || true\n",
+            "cycloops hooks git pre-push \"$1\" || true",
         ),
         (
             "post-checkout forwards all hook args",
-            "#!/bin/sh\n# comment\nbitloops hooks git post-checkout \"$@\" 2>/dev/null || true\n",
-            "bitloops hooks git post-checkout \"$@\" 2>/dev/null || true",
+            "#!/bin/sh\n# comment\ncycloops hooks git post-checkout \"$@\" 2>/dev/null || true\n",
+            "cycloops hooks git post-checkout \"$@\" 2>/dev/null || true",
         ),
         (
             "post-merge forwards all hook args",
-            "#!/bin/sh\n# comment\nbitloops hooks git post-merge \"$@\" 2>/dev/null || true\n",
-            "bitloops hooks git post-merge \"$@\" 2>/dev/null || true",
+            "#!/bin/sh\n# comment\ncycloops hooks git post-merge \"$@\" 2>/dev/null || true\n",
+            "cycloops hooks git post-merge \"$@\" 2>/dev/null || true",
         ),
         (
             "reference-transaction forwards all hook args",
-            "#!/bin/sh\n# comment\nbitloops hooks git reference-transaction \"$@\" 2>/dev/null || true\n",
-            "bitloops hooks git reference-transaction \"$@\" 2>/dev/null || true",
+            "#!/bin/sh\n# comment\ncycloops hooks git reference-transaction \"$@\" 2>/dev/null || true\n",
+            "cycloops hooks git reference-transaction \"$@\" 2>/dev/null || true",
         ),
         ("empty content", "", ""),
         ("only comments", "#!/bin/sh\n# just a comment\n", ""),
         (
             "whitespace around command",
-            "#!/bin/sh\n# comment\n  bitloops hooks git commit-msg \"$1\" || exit 1  \n",
-            "bitloops hooks git commit-msg \"$1\" || exit 1",
+            "#!/bin/sh\n# comment\n  cycloops hooks git commit-msg \"$1\" || exit 1  \n",
+            "cycloops hooks git commit-msg \"$1\" || exit 1",
         ),
         (
             "comment line contains hooks git substring",
-            "#!/bin/sh\n# Pre-push: `bitloops hooks git pre-push` (default manual-commit: no-op)\nbitloops hooks git pre-push \"$1\" || true\n",
-            "bitloops hooks git pre-push \"$1\" || true",
+            "#!/bin/sh\n# Pre-push: `cycloops hooks git pre-push` (default manual-commit: no-op)\ncycloops hooks git pre-push \"$1\" || true\n",
+            "cycloops hooks git pre-push \"$1\" || true",
         ),
     ];
 
@@ -934,7 +934,7 @@ fn remove_restores_backup_when_hook_already_gone() {
 
 #[test]
 fn test_generate_chained_content() {
-    let base = "#!/bin/sh\n# Bitloops git hooks\nbitloops hooks git pre-push \"$1\" || true\n";
+    let base = "#!/bin/sh\n# Cycloops git hooks\ncycloops hooks git pre-push \"$1\" || true\n";
     let result = generate_chained_content(base, "pre-push");
 
     assert!(result.starts_with(base));

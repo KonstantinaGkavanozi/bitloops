@@ -21,7 +21,7 @@ qat-internal-tests = []
 path = "src/lib.rs"
 
 [[bin]]
-name = "bitloops"
+name = "cycloops"
 path = "src/main.rs"
 
 [[test]]

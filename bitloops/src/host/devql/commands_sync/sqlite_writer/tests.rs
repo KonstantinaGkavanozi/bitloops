@@ -73,7 +73,7 @@ fn open_sync_sqlite_connection_reports_missing_database_file() {
     let err = open_sync_sqlite_connection(&path).expect_err("missing sqlite file should error");
     let message = format!("{err:#}");
     assert!(message.contains("SQLite database file not found"));
-    assert!(message.contains("bitloops init"));
+    assert!(message.contains("cycloops init"));
 }
 
 #[test]

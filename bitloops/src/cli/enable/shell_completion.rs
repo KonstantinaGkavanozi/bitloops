@@ -4,7 +4,7 @@ use std::{env, fs};
 
 use anyhow::{Context, Result, bail};
 
-pub const SHELL_COMPLETION_COMMENT: &str = "# Bitloops CLI shell completion";
+pub const SHELL_COMPLETION_COMMENT: &str = "# Cycloops CLI shell completion";
 
 pub fn shell_completion_target(home: &Path) -> Result<(String, PathBuf, String)> {
     let shell = env::var("SHELL").unwrap_or_default();
@@ -12,7 +12,7 @@ pub fn shell_completion_target(home: &Path) -> Result<(String, PathBuf, String)>
         return Ok((
             "Zsh".to_string(),
             home.join(".zshrc"),
-            "autoload -Uz compinit && compinit && source <(bitloops completion zsh)".to_string(),
+            "autoload -Uz compinit && compinit && source <(cycloops completion zsh)".to_string(),
         ));
     }
     if shell.contains("bash") {
@@ -23,14 +23,14 @@ pub fn shell_completion_target(home: &Path) -> Result<(String, PathBuf, String)>
         return Ok((
             "Bash".to_string(),
             rc,
-            "source <(bitloops completion bash)".to_string(),
+            "source <(cycloops completion bash)".to_string(),
         ));
     }
     if shell.contains("fish") {
         return Ok((
             "Fish".to_string(),
             home.join(".config").join("fish").join("config.fish"),
-            "bitloops completion fish | source".to_string(),
+            "cycloops completion fish | source".to_string(),
         ));
     }
     bail!("unsupported shell")
@@ -53,7 +53,7 @@ pub fn append_shell_completion(rc_file: &Path, completion_line: &str) -> Result<
 
 fn is_completion_configured(rc_file: &Path) -> bool {
     fs::read_to_string(rc_file)
-        .map(|content| content.contains("bitloops completion"))
+        .map(|content| content.contains("cycloops completion"))
         .unwrap_or(false)
 }
 

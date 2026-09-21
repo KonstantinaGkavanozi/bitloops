@@ -5,7 +5,7 @@ use super::{
 };
 use crate::config::{persist_dashboard_tls_hint, resolve_dashboard_config_for_repo};
 use crate::graphql;
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, bitloops_wordmark, color_hex};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, bitloops_wordmark, color_hex};
 use crate::utils::paths;
 use anyhow::{Context, Result, anyhow, bail};
 use std::env;
@@ -68,7 +68,7 @@ pub(super) async fn run(
     let db_init = db::init_dashboard_db().await;
     if db_init.startup_health.has_failures() {
         bail!(
-            "dashboard database startup health check failed; run `bitloops --connection-status` for details"
+            "dashboard database startup health check failed; run `cycloops --connection-status` for details"
         );
     }
 
@@ -100,7 +100,7 @@ pub(super) async fn run(
                 .with_context(|| {
                     format!(
                         "dashboard fast TLS path failed for host {browser_host}; \
-                         run `bitloops daemon start --recheck-local-dashboard-net` once"
+                         run `cycloops daemon start --recheck-local-dashboard-net` once"
                     )
                 })?;
             log::debug!(
@@ -191,12 +191,12 @@ pub(super) async fn run(
 
     if options.print_ready_banner {
         println!();
-        println!("{}", color_hex(&bitloops_wordmark(), BITLOOPS_PURPLE_HEX));
+        println!("{}", color_hex(&bitloops_wordmark(), CYCLOOPS_ACCENT_HEX));
         println!();
         print!("📊 {} ", options.ready_subject);
         print!("{}", color_hex("ready ", "#22c55e"));
         print!("at ");
-        println!("{}", color_hex(&clickable_url(&url), BITLOOPS_PURPLE_HEX));
+        println!("{}", color_hex(&clickable_url(&url), CYCLOOPS_ACCENT_HEX));
         if !startup_warnings.is_empty() {
             eprintln!();
         }

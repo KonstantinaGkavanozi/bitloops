@@ -1,4 +1,4 @@
-//! `bitloops enable` / `bitloops disable` command implementation.
+//! `cycloops enable` / `cycloops disable` command implementation.
 
 use std::collections::BTreeSet;
 use std::env;
@@ -70,8 +70,8 @@ pub struct EnableArgs {
     #[arg(long, short = 'f', hide = true)]
     pub force: bool,
 
-    /// Deprecated hidden compatibility flag. Use `bitloops init --agent <agent>`
-    /// to persist supported agents before running `bitloops enable`.
+    /// Deprecated hidden compatibility flag. Use `cycloops init --agent <agent>`
+    /// to persist supported agents before running `cycloops enable`.
     #[arg(long, hide = true)]
     pub agent: Option<String>,
 
@@ -144,8 +144,8 @@ pub struct EnableArgs {
     pub context_guidance_api_key_env: Option<String>,
 }
 
-const ENABLE_NO_FLAGS_ERROR: &str = "`bitloops enable` without flags requires an interactive terminal; pass explicit flags such as `--capture` or `--devql-guidance`";
-const DISABLE_NO_FLAGS_ERROR: &str = "`bitloops disable` without flags requires an interactive terminal; pass explicit flags such as `--capture` or `--devql-guidance`";
+const ENABLE_NO_FLAGS_ERROR: &str = "`cycloops enable` without flags requires an interactive terminal; pass explicit flags such as `--capture` or `--devql-guidance`";
+const DISABLE_NO_FLAGS_ERROR: &str = "`cycloops disable` without flags requires an interactive terminal; pass explicit flags such as `--capture` or `--devql-guidance`";
 const DEFAULT_EMBEDDINGS_API_KEY_ENV: &str = "BITLOOPS_PLATFORM_GATEWAY_TOKEN";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -432,7 +432,7 @@ fn validate_summaries_enable_args(args: &EnableArgs) -> Result<()> {
     Ok(())
 }
 
-/// Main handler for `bitloops enable`.
+/// Main handler for `cycloops enable`.
 pub async fn run(args: EnableArgs) -> Result<()> {
     if args.local && args.project {
         bail!("cannot use both --local and --project flags");
@@ -454,8 +454,8 @@ pub(crate) async fn run_with_io(
 
     if let Some(agent) = args.agent.as_deref() {
         bail!(
-            "`bitloops enable --agent {agent}` is no longer supported. \
-Run `bitloops init --agent {agent}` to persist supported agents before enabling Bitloops."
+            "`cycloops enable --agent {agent}` is no longer supported. \
+Run `cycloops init --agent {agent}` to persist supported agents before enabling Bitloops."
         );
     }
 
@@ -465,7 +465,7 @@ Run `bitloops init --agent {agent}` to persist supported agents before enabling 
     if args.local || args.project {
         eprintln!(
             "Note: `--local` and `--project` are deprecated and ignored. \
-`bitloops enable` updates the nearest discovered project policy file."
+`cycloops enable` updates the nearest discovered project policy file."
         );
     }
 
@@ -854,7 +854,7 @@ pub async fn run_disable_with_args_async(
     if args.project {
         eprintln!(
             "Note: `--project` is deprecated and ignored. \
-`bitloops disable` updates the nearest discovered project policy file."
+`cycloops disable` updates the nearest discovered project policy file."
         );
     }
 
@@ -933,7 +933,7 @@ pub fn check_disabled_guard(start: &Path, out: &mut dyn Write) -> bool {
         Ok(false) => {
             let _ = writeln!(
                 out,
-                "Bitloops is disabled. Run `bitloops enable --capture` to re-enable capture."
+                "Bitloops is disabled. Run `cycloops enable --capture` to re-enable capture."
             );
             true
         }

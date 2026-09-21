@@ -134,7 +134,7 @@ pub(super) async fn complete_workos_device_login_with_store(
             }
             "access_denied" => bail!("WorkOS login was denied by the user"),
             "expired_token" => {
-                bail!("WorkOS device authorisation expired; run `bitloops login` again")
+                bail!("WorkOS device authorisation expired; run `cycloops login` again")
             }
             _ => bail!(oauth_error_message("WorkOS login failed", &error)),
         }

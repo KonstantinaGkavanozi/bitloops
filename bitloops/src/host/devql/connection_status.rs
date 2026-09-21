@@ -20,7 +20,7 @@ pub async fn run_connection_status() -> Result<()> {
         ];
         print_db_status_table(&rows);
         bail!(
-            "Bitloops daemon has not been bootstrapped yet. Run `bitloops start --create-default-config` or `bitloops init --install-default-daemon`."
+            "Bitloops daemon has not been bootstrapped yet. Run `cycloops start --create-default-config` or `cycloops init --install-default-daemon`."
         );
     }
 
@@ -162,7 +162,7 @@ async fn check_duckdb_connection(path: &Path) -> Result<()> {
     tokio::task::spawn_blocking(move || -> Result<()> {
         if !db_path.is_file() {
             bail!(
-                "DuckDB database file not found at {}. Run `bitloops init` to create and initialise stores.",
+                "DuckDB database file not found at {}. Run `cycloops init` to create and initialise stores.",
                 db_path.display()
             );
         }

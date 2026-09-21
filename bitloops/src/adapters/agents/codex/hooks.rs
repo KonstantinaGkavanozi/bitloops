@@ -14,7 +14,7 @@ const HOOK_KEY_PRE_TOOL_USE: &str = "PreToolUse";
 const HOOK_KEY_POST_TOOL_USE: &str = "PostToolUse";
 const HOOK_KEY_STOP: &str = "Stop";
 
-const BITLOOPS_HOOK_PREFIX: &str = "bitloops hooks codex ";
+const BITLOOPS_HOOK_PREFIX: &str = "cycloops hooks codex ";
 const LOCAL_DEV_HOOK_PREFIX: &str = "cargo run -- hooks codex ";
 const MANAGED_HOOK_PREFIXES: [&str; 2] = [BITLOOPS_HOOK_PREFIX, LOCAL_DEV_HOOK_PREFIX];
 

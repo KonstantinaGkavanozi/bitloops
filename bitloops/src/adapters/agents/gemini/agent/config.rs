@@ -14,7 +14,7 @@ pub const HOOK_NAME_NOTIFICATION: &str = "notification";
 
 pub const GEMINI_SETTINGS_FILE_NAME: &str = "settings.json";
 
-pub(crate) const BITLOOPS_HOOK_PREFIXES: [&str; 2] = ["bitloops ", "cargo run -- "];
+pub(crate) const BITLOOPS_HOOK_PREFIXES: [&str; 2] = ["cycloops ", "cargo run -- "];
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GeminiSettings {

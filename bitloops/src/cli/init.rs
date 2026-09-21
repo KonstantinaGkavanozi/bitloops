@@ -23,7 +23,9 @@ pub use args::{InitArgs, InitCommand, InitStatusArgs, SummariesRuntime, SummaryE
 pub(super) use args::{
     DEFAULT_INIT_INGEST_BACKFILL, normalize_cli_exclusions, normalize_exclude_from_paths,
 };
-pub(super) use final_setup::{InitFinalSetupPromptOptions, choose_final_setup_options};
+pub(super) use final_setup::{
+    InitFinalSetupPromptOptions, InitFinalSetupSelection, choose_final_setup_options,
+};
 pub(super) use repo_excludes::ensure_repo_init_files_excluded;
 pub(crate) use repo_excludes::{
     clear_repo_local_policy_excluded, clear_repo_managed_skill_files_excluded,
@@ -53,7 +55,7 @@ fn run_with_writer_for_project_root(
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
-        .context("creating runtime for `bitloops init`")?;
+        .context("creating runtime for `cycloops init`")?;
     let mut input = io::Cursor::new(Vec::<u8>::new());
     runtime.block_on(run_with_io_async_for_project_root(
         args,

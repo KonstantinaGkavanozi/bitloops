@@ -13,7 +13,7 @@ use std::process::{Command, Output, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn bitloops_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_bitloops"))
+    PathBuf::from(env!("CARGO_BIN_EXE_cycloops"))
 }
 
 fn run_cmd(repo: &Path, args: &[&str], stdin: Option<&str>) -> Output {

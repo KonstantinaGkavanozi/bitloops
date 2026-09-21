@@ -1830,7 +1830,7 @@ fn devql_run_requires_subcommand() {
     assert!(err.to_string().contains(MISSING_SUBCOMMAND_MESSAGE));
     assert!(
         err.to_string()
-            .contains("bitloops devql architecture roles seed")
+            .contains("cycloops devql architecture roles seed")
     );
 }
 
@@ -1949,7 +1949,7 @@ fn devql_run_schema_requires_running_daemon() {
 
     assert_eq!(
         err.to_string(),
-        "Bitloops daemon is not running. Start it with `bitloops daemon start`."
+        "Bitloops daemon is not running. Start it with `cycloops daemon start`."
     );
 }
 
@@ -1977,7 +1977,7 @@ fn devql_run_global_schema_requires_running_daemon() {
 
     assert_eq!(
         err.to_string(),
-        "Bitloops daemon is not running. Start it with `bitloops daemon start`."
+        "Bitloops daemon is not running. Start it with `cycloops daemon start`."
     );
 }
 

@@ -1,91 +1,109 @@
-# Deploy (Phase A, Non-Brew)
+# Deploy
 
-This is the minimal release flow for developers.
+Release flow for this research fork.
+
+## Workflows
+
+Two workflows: `ci.yml` and `release.yml`.
+
+`ci.yml` runs on every push to `main` and every PR - build the CLI, run
+`cycloops --version`, then the full `cargo nextest` suite on `ubuntu-latest`.
+`DUCKDB_DOWNLOAD_LIB=1` fetches a prebuilt DuckDB rather than compiling its
+C++, so a cached run is minutes rather than half an hour. The first run is
+slow while the cache fills.
+
+The eight workflows inherited from upstream were removed: they need
+`self-hosted` runners, a `develop` branch, or secrets
+(`OPENAI_API_KEY_PR_REVIEW`, `BITLOOPS_ACTIONS_VARIABLES_TOKEN`) that this
+fork does not have. One of them, `allow-main-only-via-develop`, failed every
+PR into `main` that did not come from `develop`.
+
+Locally, the same checks are:
+
+```bash
+cargo build -p bitloops
+cargo test -p bitloops
+```
 
 ## 1. Ship code to `main`
 
-1. Open a PR with your changes.
-2. Wait for CI to pass (`.github/workflows/ci.yml`).
-3. Merge to `main`.
+Merge your branch into `main`. Nothing runs on push.
 
-Do **not** bump the CLI version in random feature PRs unless that PR is intended to be the release cut.
+Merging makes `install.sh` and `install.ps1` live at their
+`raw.githubusercontent.com/.../main/` URLs. Until a release exists those
+scripts exit with "No published release found", so merge and tag close
+together.
 
-## 2. Decide to cut a release
+## 2. Tag
 
-Cut a release only when:
+The workflow stamps the version from the tag (`BITLOOPS_BUILD_VERSION`), so
+the tag alone decides what `cycloops --version` reports.
+`bitloops/Cargo.toml` does not need bumping.
 
-- Desired PRs are already merged to `main`
-- `main` is green
-- You want a new public binary version
-
-## 3. Bump version and create tag
-
-Create a release PR that bumps `bitloops/Cargo.toml` to `X.Y.Z`.
-
-1. Open PR (example title: `chore: release vX.Y.Z`).
-2. Wait for CI.
-3. Merge PR to `main`.
-
-## 4. Create and push release tag
-
-From a clean, up-to-date local `main`:
+Tags must be semver-parseable - `major.minor.patch[-prerelease]` - or the
+update check cannot compare them. Prereleases sort *below* their release, so
+`0.0.31-archiver.2` is newer than `0.0.31-archiver.1` but older than
+`0.0.31`.
 
 ```bash
 git checkout main
 git pull --ff-only origin main
-./scripts/release.sh
+git tag v0.0.31-archiver.2
+git push origin v0.0.31-archiver.2
 ```
 
-What the script does:
+`scripts/release.sh` is upstream's helper. It derives the tag from
+`bitloops/Cargo.toml`, which will not match the scheme above unless you bump
+that file to the same prerelease string. Tagging by hand is simpler.
 
-- Reads `bitloops/Cargo.toml` version
-- Creates tag `vX.Y.Z`
-- Pushes the tag only (never pushes `main`)
+To exercise the build matrix without cutting a release, run the workflow
+manually - `publish` and `verify` are gated on a tag ref and will skip.
 
-## 5. Observe release pipeline
+## 3. Watch the run
 
-Watch `.github/workflows/release.yml` for the tag run.
+Six targets, two of them `cross` musl builds. Budget 25-40 minutes cold.
 
-Success criteria:
+Success:
 
-- GitHub Release is created
-- Artifacts are attached:
-  - `bitloops-aarch64-apple-darwin.tar.gz`
-  - `bitloops-aarch64-unknown-linux-musl.tar.gz`
-  - `bitloops-x86_64-apple-darwin.tar.gz`
-  - `bitloops-x86_64-unknown-linux-musl.tar.gz`
-  - `bitloops-aarch64-pc-windows-msvc.zip`
-  - `bitloops-x86_64-pc-windows-msvc.zip`
-  - `checksums-sha256.txt`
-- Verify job passes (downloads assets from release, checksums, Linux smoke run)
+- A GitHub Release with `cycloops-<target>.{tar.gz,zip}` for all six targets
+  and `checksums-sha256.txt`
+- The `verify` job green - it re-downloads the published assets, checks the
+  SHA-256s, and runs the Linux x86_64 and arm64 binaries (the latter under
+  qemu)
 
-## 6. Quick install checks
+If `verify` passes, the release is installable.
 
-macOS/Linux:
+## 4. Check the install
+
+On a machine that has never had this installed:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/bitloops/bitloops/main/scripts/install.sh | bash
-bitloops --version
+curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.sh | bash
+cycloops --version
 ```
-
-Windows (PowerShell):
 
 ```powershell
-irm https://raw.githubusercontent.com/bitloops/bitloops/main/scripts/install.ps1 | iex
-bitloops --version
+irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
+cycloops --version
 ```
-
-Windows (CMD):
 
 ```cmd
-curl -fsSL https://raw.githubusercontent.com/bitloops/bitloops/main/scripts/install.cmd -o install.cmd && install.cmd && del install.cmd
-bitloops --version
+curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.cmd -o install.cmd && install.cmd && del install.cmd
+cycloops --version
 ```
 
-## 7. Rollback rule
+Then in a scratch repo run `cycloops init`, do one agent turn, and confirm a
+JSON file lands in the export folder. Run `init` a second time and confirm it
+reports nothing to install - that exercises hook detection, which is easy to
+break when renaming.
 
-If release is bad:
+## 5. Rollback
 
-1. Delete GitHub Release + tag
+1. Delete the GitHub Release and the tag
 2. Fix forward
-3. Publish a new patch tag (for example `vX.Y.(Z+1)`)
+3. Publish a new tag
+
+Users are not upgraded automatically. At most once every 24 hours the binary
+checks this fork's latest release and prints the install command if a newer
+one exists; they have to re-run it. For a study, tell participants directly
+when a version matters.

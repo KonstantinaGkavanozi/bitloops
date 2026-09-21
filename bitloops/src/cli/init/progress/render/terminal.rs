@@ -2,7 +2,7 @@ use std::io::Write;
 
 use anyhow::Result;
 
-use crate::utils::branding::{BITLOOPS_PURPLE_HEX, color_hex_if_enabled};
+use crate::utils::branding::{CYCLOOPS_ACCENT_HEX, color_hex_if_enabled};
 
 use super::super::InitChecklistState;
 
@@ -53,7 +53,7 @@ fn visible_terminal_width(text: &str) -> usize {
 pub(super) fn render_init_determinate_progress_bar(width: usize, ratio: f64) -> String {
     let filled = ((width as f64) * ratio).round() as usize;
     let filled = filled.min(width);
-    let fill = color_hex_if_enabled(&"█".repeat(filled), BITLOOPS_PURPLE_HEX);
+    let fill = color_hex_if_enabled(&"█".repeat(filled), CYCLOOPS_ACCENT_HEX);
     let empty = "░".repeat(width.saturating_sub(filled));
     format!("{fill}{empty}")
 }
@@ -64,7 +64,7 @@ pub(super) fn render_init_indeterminate_progress_bar(width: usize, spinner_index
     }
     let position = spinner_index % width;
     let prefix = "░".repeat(position);
-    let pulse = color_hex_if_enabled("█", BITLOOPS_PURPLE_HEX);
+    let pulse = color_hex_if_enabled("█", CYCLOOPS_ACCENT_HEX);
     let suffix = "░".repeat(width.saturating_sub(position + 1));
     format!("{prefix}{pulse}{suffix}")
 }

@@ -184,14 +184,14 @@ fn repo_bound_daemon_settings_for_repo(repo_root: &Path) -> Result<LoadedDaemonS
 
     let Some(bound_path) = policy.daemon_config_path.as_deref() else {
         bail!(
-            "Bitloops repo daemon binding is missing. Run `bitloops init` to bind this repo, or set `{}` to an explicit daemon config path.",
+            "Bitloops repo daemon binding is missing. Run `cycloops init` to bind this repo, or set `{}` to an explicit daemon config path.",
             ENV_DAEMON_CONFIG_PATH_OVERRIDE
         );
     };
 
     load_strict_daemon_settings(bound_path).with_context(|| {
         format!(
-            "resolving repo-bound Bitloops daemon config from `{}`; rerun `bitloops init` to rebind this repo",
+            "resolving repo-bound Bitloops daemon config from `{}`; rerun `cycloops init` to rebind this repo",
             REPO_POLICY_LOCAL_FILE_NAME
         )
     })
@@ -227,7 +227,7 @@ fn preferred_daemon_settings_for_repo(repo_root: &Path) -> Result<(PathBuf, Unif
     if let Some(bound_path) = policy.daemon_config_path.as_deref() {
         let loaded = load_strict_daemon_settings(bound_path).with_context(|| {
             format!(
-                "resolving preferred Bitloops daemon config from `{}`; rerun `bitloops init` to rebind this repo",
+                "resolving preferred Bitloops daemon config from `{}`; rerun `cycloops init` to rebind this repo",
                 REPO_POLICY_LOCAL_FILE_NAME
             )
         })?;

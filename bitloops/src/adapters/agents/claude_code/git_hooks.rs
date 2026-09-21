@@ -4,7 +4,7 @@
 //!   prepare-commit-msg, commit-msg, post-commit, post-merge, post-checkout, pre-push,
 //!   reference-transaction (Git >= 2.28)
 //!
-//! Each script calls `bitloops hooks git <verb>` and can chain to a
+//! Each script calls `cycloops hooks git <verb>` and can chain to a
 //! pre-existing hook backed up with the `.pre-bitloops` suffix.
 
 use std::fs;
@@ -20,7 +20,7 @@ use anyhow::{Context, Result};
 use crate::test_support::process_state::git_command;
 
 /// Comment embedded in every managed hook script — used as the installation marker.
-const HOOK_MARKER: &str = "# Bitloops git hooks";
+const HOOK_MARKER: &str = "# Cycloops git hooks";
 
 /// Suffix appended to pre-existing hooks when backing them up.
 const BACKUP_SUFFIX: &str = ".pre-bitloops";
@@ -138,7 +138,7 @@ fn get_hooks_dir(repo_root: &Path) -> Result<PathBuf> {
 fn hook_cmd_prefix(local_dev: bool) -> &'static str {
     // Both modes use the installed binary — local dev is handled separately.
     let _ = local_dev;
-    "bitloops"
+    "cycloops"
 }
 
 fn git_hook_env_sanitizer() -> String {
@@ -218,7 +218,7 @@ fn build_hook_specs(cmd_prefix: &str) -> Vec<HookSpec> {
                  {runtime_bootstrap}\
                  {daemon_config_export}\
                  {git_env_sanitizer}\
-                 # Commit-msg: `bitloops hooks git commit-msg` (default manual-commit: no-op)\n\
+                 # Commit-msg: `cycloops hooks git commit-msg` (default manual-commit: no-op)\n\
                  {cmd_prefix} hooks git commit-msg \"$1\" || exit 1\n"
             ),
         },
@@ -262,7 +262,7 @@ fn build_hook_specs(cmd_prefix: &str) -> Vec<HookSpec> {
                  {runtime_bootstrap}\
                  {daemon_config_export}\
                  {git_env_sanitizer}\
-                 # Pre-push: `bitloops hooks git pre-push` (default manual-commit: no-op)\n\
+                 # Pre-push: `cycloops hooks git pre-push` (default manual-commit: no-op)\n\
                  # $1 is the remote name (e.g., \"origin\")\n\
                  {cmd_prefix} hooks git pre-push \"$1\" || true\n"
             ),

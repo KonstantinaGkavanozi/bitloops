@@ -1,12 +1,12 @@
-pub const ROOT_NAME: &str = "bitloops";
-pub const ROOT_SHORT_ABOUT: &str = "Bitloops CLI";
-pub const ROOT_LONG_ABOUT: &str = r#"The command-line interface for Bitloops
+pub const ROOT_NAME: &str = "cycloops";
+pub const ROOT_SHORT_ABOUT: &str = "Cycloops CLI";
+pub const ROOT_LONG_ABOUT: &str = r#"Cycloops CLI - a research build of Bitloops that archives agent-written code
 
 Getting Started:
-  To get started with Bitloops CLI, run 'bitloops start' to launch the
-  daemon, then run 'bitloops init' inside a repository or subproject.
-  For more information, visit:
-  https://docs.bitloops.io/introduction
+  Run 'cycloops init' inside a repository to install the agent hooks.
+  Archiving then runs on its own; in archiver-only mode there is no daemon
+  to start. For more information, see:
+  https://github.com/KonstantinaGkavanozi/bitloops
 
 Environment Variables:
   ACCESSIBLE    Set to any value (e.g., ACCESSIBLE=1) to enable accessibility

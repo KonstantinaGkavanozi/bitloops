@@ -1,7 +1,7 @@
 use figlet_rs::FIGlet;
 use std::env;
 
-pub const BITLOOPS_PURPLE_HEX: &str = "#7404e4";
+pub const CYCLOOPS_ACCENT_HEX: &str = "#00CBC4";
 
 pub fn should_use_color_output() -> bool {
     env::var_os("NO_COLOR").is_none() && env::var("ACCESSIBLE").is_err()
@@ -35,10 +35,10 @@ pub fn squared_capital(s: &str) -> String {
 
 pub fn bitloops_wordmark() -> String {
     if let Ok(font) = FIGlet::standard()
-        && let Some(figure) = font.convert("bitloops")
+        && let Some(figure) = font.convert("cycloops")
     {
         return figure.to_string().trim_end().to_string();
     }
 
-    squared_capital("Bitloops")
+    squared_capital("Cycloops")
 }

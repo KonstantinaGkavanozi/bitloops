@@ -751,7 +751,7 @@ pub(super) async fn ensure_seed_owned_draft_rules_exist(
     let rule_ids = load_seed_owned_draft_rule_ids(relational, repo_id, profile_name).await?;
     if rule_ids.is_empty() {
         bail!(
-            "No seed-owned draft architecture role rules exist for profile `{profile_name}`. Run `bitloops devql architecture roles seed` first or rerun bootstrap without `--skip-seed`."
+            "No seed-owned draft architecture role rules exist for profile `{profile_name}`. Run `cycloops devql architecture roles seed` first or rerun bootstrap without `--skip-seed`."
         );
     }
     Ok(())

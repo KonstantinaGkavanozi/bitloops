@@ -138,7 +138,7 @@ async fn run_status() -> Result<()> {
 
 fn run_token() -> Result<()> {
     let Some(token) = crate::daemon::platform_gateway_bearer_token()? else {
-        bail!("not signed in or no platform bearer token is available; run `bitloops login` first");
+        bail!("not signed in or no platform bearer token is available; run `cycloops login` first");
     };
     println!("{token}");
     Ok(())

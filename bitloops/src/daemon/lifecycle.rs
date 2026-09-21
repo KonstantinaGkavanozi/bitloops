@@ -153,7 +153,7 @@ pub(super) async fn restart(
         }
 
         let runtime = runtime
-            .context("Bitloops daemon is not running. Start it with `bitloops daemon start`.")?;
+            .context("Bitloops daemon is not running. Start it with `cycloops daemon start`.")?;
         let config = DashboardServerConfig {
             host: Some(runtime.host.clone()),
             port: runtime.port,
@@ -171,7 +171,7 @@ pub(super) async fn restart(
             DaemonMode::Detached => start_detached(&daemon_config, config, None).await,
             DaemonMode::Foreground => {
                 bail!(
-                    "cannot restart a foreground daemon from another process; run `bitloops daemon start` again"
+                    "cannot restart a foreground daemon from another process; run `cycloops daemon start` again"
                 )
             }
             DaemonMode::Service => {
@@ -228,13 +228,13 @@ pub(super) async fn stop() -> Result<()> {
             let Some(orphan_config_path) = current_repo_daemon_config_path(Path::new("."), None, None)
             else {
                 anyhow::bail!(
-                    "Bitloops daemon is not running. Start it with `bitloops daemon start`."
+                    "Bitloops daemon is not running. Start it with `cycloops daemon start`."
                 );
             };
             let orphan_pids = running_internal_daemon_process_pids_for_config(&orphan_config_path)?;
             if orphan_pids.is_empty() {
                 anyhow::bail!(
-                    "Bitloops daemon is not running. Start it with `bitloops daemon start`."
+                    "Bitloops daemon is not running. Start it with `cycloops daemon start`."
                 );
             }
             log::warn!(

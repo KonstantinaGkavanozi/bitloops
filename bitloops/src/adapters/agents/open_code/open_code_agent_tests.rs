@@ -314,7 +314,7 @@ fn TestInstallHooks_FreshInstall() {
     let content = fs::read_to_string(&plugin_path).expect("plugin file not created");
     assert_eq!(
         rendered_const::<Vec<String>>(&content, "BITLOOPS_CMD"),
-        vec!["bitloops".to_string()],
+        vec!["cycloops".to_string()],
         "plugin file does not contain the production Bitloops command argv"
     );
     assert!(

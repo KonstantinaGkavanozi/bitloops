@@ -183,7 +183,7 @@ pub(super) async fn ensure_service_managed_repo_runtime(
         }
 
         bail!(
-            "Bitloops daemon is already running at {}. Use `bitloops daemon restart` if you need to replace it.",
+            "Bitloops daemon is already running at {}. Use `cycloops daemon restart` if you need to replace it.",
             runtime.url
         );
     }
@@ -234,11 +234,11 @@ pub(super) fn stop_service_managed_repo_runtime() -> Result<()> {
             Ok(())
         }
         Some(state) => bail!(
-            "Bitloops daemon is running in {} mode. Use `bitloops daemon stop` from that mode instead.",
+            "Bitloops daemon is running in {} mode. Use `cycloops daemon stop` from that mode instead.",
             state.mode
         ),
         None if binding.is_some() => Ok(()),
-        None => bail!("Bitloops daemon is not running. Start it with `bitloops daemon start`."),
+        None => bail!("Bitloops daemon is not running. Start it with `cycloops daemon start`."),
     }
 }
 
@@ -297,7 +297,7 @@ pub(super) fn ensure_can_start(repo_root: &Path, allow_stopped_service: bool) ->
             }
         } else {
             bail!(
-                "Bitloops daemon is already running for this repository at {}. Use `bitloops daemon restart` if you need to replace it.",
+                "Bitloops daemon is already running for this repository at {}. Use `cycloops daemon restart` if you need to replace it.",
                 runtime.url
             );
         }
@@ -319,7 +319,7 @@ pub(super) fn ensure_can_start(repo_root: &Path, allow_stopped_service: bool) ->
         && supervisor_running
     {
         bail!(
-            "Bitloops daemon is managed by the always-on service ({}), but no daemon runtime is currently attached. Start it with `bitloops start` or stop/uninstall the service before starting a detached daemon.",
+            "Bitloops daemon is managed by the always-on service ({}), but no daemon runtime is currently attached. Start it with `cycloops start` or stop/uninstall the service before starting a detached daemon.",
             metadata.service_name
         );
     }

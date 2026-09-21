@@ -18,7 +18,7 @@ pub struct RewindPoint {
 }
 
 pub fn bitloops_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_bitloops"))
+    PathBuf::from(env!("CARGO_BIN_EXE_cycloops"))
 }
 
 pub fn run_cmd(repo: &Path, args: &[&str], stdin: Option<&str>) -> Output {

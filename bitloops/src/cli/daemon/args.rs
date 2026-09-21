@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Args, Subcommand};
 
-pub const MISSING_SUBCOMMAND_MESSAGE: &str = "missing subcommand. Use one of: `bitloops daemon start`, `bitloops daemon stop`, `bitloops daemon status`, `bitloops daemon restart`, `bitloops daemon enable`, `bitloops daemon enrichments`, `bitloops daemon logs`";
+pub const MISSING_SUBCOMMAND_MESSAGE: &str = "missing subcommand. Use one of: `cycloops daemon start`, `cycloops daemon stop`, `cycloops daemon status`, `cycloops daemon restart`, `cycloops daemon enable`, `cycloops daemon enrichments`, `cycloops daemon logs`";
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct DaemonArgs {

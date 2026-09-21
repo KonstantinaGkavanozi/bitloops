@@ -186,7 +186,7 @@ async fn devql_slim_route_rejects_missing_daemon_binding_for_repo_scoped_request
     assert!(
         body["errors"][0]["message"]
             .as_str()
-            .is_some_and(|message| message.contains("Run `bitloops init`")),
+            .is_some_and(|message| message.contains("Run `cycloops init`")),
         "unexpected response body: {body}"
     );
 }
@@ -228,7 +228,7 @@ async fn devql_global_route_rejects_mismatched_daemon_binding_for_repo_scoped_re
     assert!(
         body["errors"][0]["message"]
             .as_str()
-            .is_some_and(|message| message.contains("Run `bitloops init`")),
+            .is_some_and(|message| message.contains("Run `cycloops init`")),
         "unexpected response body: {body}"
     );
 }

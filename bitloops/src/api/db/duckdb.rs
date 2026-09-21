@@ -84,7 +84,7 @@ pub(super) fn ensure_duckdb_file_exists(path: &Path) -> Result<()> {
     }
 
     bail!(
-        "DuckDB database file not found at {}. Run `bitloops init` to create and initialise stores.",
+        "DuckDB database file not found at {}. Run `cycloops init` to create and initialise stores.",
         path.display()
     );
 }

@@ -628,7 +628,7 @@ supported = ["claude-code"]
         .unwrap();
 
         let settings = fs::read_to_string(app.join(".claude/settings.json")).unwrap();
-        assert!(!settings.contains("bitloops hooks claude-code"));
+        assert!(!settings.contains("cycloops hooks claude-code"));
     });
 }
 
@@ -877,7 +877,7 @@ fn full_uninstall_removes_supported_temp_artefacts() {
             fs::create_dir_all(home.path().join(".bitloops").join("certs")).unwrap();
             fs::write(
                 home.path().join(".zshrc"),
-                format!("{SHELL_COMPLETION_COMMENT}\nsource <(bitloops completion zsh)\n"),
+                format!("{SHELL_COMPLETION_COMMENT}\nsource <(cycloops completion zsh)\n"),
             )
             .unwrap();
             codex_hooks::install_hooks_at(repo.path(), false, false).unwrap();

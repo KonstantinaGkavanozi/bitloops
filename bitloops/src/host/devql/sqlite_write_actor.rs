@@ -388,7 +388,7 @@ fn maybe_fail_architecture_graph_write(
 fn open_sqlite_writer_connection(path: &Path) -> Result<Connection> {
     if !path.is_file() {
         bail!(
-            "SQLite database file not found at {}. Run `bitloops init` to create and initialise stores.",
+            "SQLite database file not found at {}. Run `cycloops init` to create and initialise stores.",
             path.display()
         );
     }

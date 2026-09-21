@@ -505,7 +505,7 @@ fn sync_follow_up_failure_message_names_enrichment_pool_and_latest_job() {
     assert!(message.contains("failed jobs increased from 2 to 4"));
     assert!(message.contains("embedding-job-1"));
     assert!(message.contains("git cat-file failed"));
-    assert!(message.contains("bitloops daemon enrichments status"));
+    assert!(message.contains("cycloops daemon enrichments status"));
 }
 
 #[test]

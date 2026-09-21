@@ -1,7 +1,7 @@
 use super::*;
 use crate::config::default_daemon_config_path;
 use crate::test_support::process_state::{
-    GIT_ENV_KEYS, git_command, with_env_var, with_process_state,
+    GIT_ENV_KEYS, git_command, with_env_var, with_env_vars, with_process_state,
 };
 use serde_json::Value;
 use std::collections::HashMap;
@@ -89,6 +89,48 @@ fn TestTrackActionDetachedSkipsNilAction() {
         agent: None,
     };
     track_action_detached(None, &ctx, "1.0.0", None, true, 12);
+}
+
+#[test]
+fn telemetry_is_disabled_unless_explicitly_opted_in() {
+    with_env_vars(
+        &[(TELEMETRY_OPTIN_ENV, None), (TELEMETRY_OPTOUT_ENV, None)],
+        || {
+            assert!(
+                !telemetry_enabled(),
+                "this build must not report telemetry by default"
+            );
+        },
+    );
+}
+
+#[test]
+fn telemetry_opt_in_enables_reporting() {
+    with_env_vars(
+        &[
+            (TELEMETRY_OPTIN_ENV, Some("1")),
+            (TELEMETRY_OPTOUT_ENV, None),
+        ],
+        || {
+            assert!(
+                telemetry_enabled(),
+                "explicit opt-in should enable reporting"
+            );
+        },
+    );
+}
+
+#[test]
+fn telemetry_opt_out_beats_opt_in() {
+    with_env_vars(
+        &[
+            (TELEMETRY_OPTIN_ENV, Some("1")),
+            (TELEMETRY_OPTOUT_ENV, Some("1")),
+        ],
+        || {
+            assert!(!telemetry_enabled(), "opt-out must win over opt-in");
+        },
+    );
 }
 
 #[test]
@@ -273,6 +315,9 @@ fn TestTrackSessionActivityCreatesSessionStoreEntry() {
             (TEST_STATE_DIR_OVERRIDE_ENV, Some(state_root_str.as_str())),
             ("BITLOOPS_TELEMETRY_DISTINCT_ID", Some("fixed-test-id")),
             ("BITLOOPS_TELEMETRY_FORCE_NO_DISTINCT_ID", None),
+            // Reporting is opt-in in this build; this test exercises the
+            // reporting path, so it has to opt in.
+            (TELEMETRY_OPTIN_ENV, Some("1")),
         ],
         || {
             track_session_activity_detached(tmp.path(), "dashboard", "dashboard");

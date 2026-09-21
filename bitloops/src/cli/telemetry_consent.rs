@@ -161,11 +161,11 @@ pub(crate) async fn ensure_default_daemon_running() -> Result<()> {
     }
 
     if crate::config::default_daemon_config_exists()? {
-        bail!("Bitloops daemon is not running. Start it with `bitloops start`.")
+        bail!("Bitloops daemon is not running. Start it with `cycloops start`.")
     }
 
     bail!(
-        "Bitloops daemon has not been bootstrapped yet. Run `bitloops start --create-default-config` or `bitloops init --install-default-daemon`."
+        "Bitloops daemon has not been bootstrapped yet. Run `cycloops start --create-default-config` or `cycloops init --install-default-daemon`."
     )
 }
 

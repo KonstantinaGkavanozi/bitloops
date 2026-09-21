@@ -58,8 +58,8 @@ pub use args::{
     DevqlTestHarnessIngestTestsArgs,
 };
 
-pub(crate) const MISSING_SUBCOMMAND_MESSAGE: &str = "missing subcommand. Use one of: `bitloops devql init`, `bitloops devql analytics sql`, `bitloops devql tasks enqueue`, `bitloops devql tasks watch`, `bitloops devql tasks status`, `bitloops devql tasks list`, `bitloops devql tasks pause`, `bitloops devql tasks resume`, `bitloops devql tasks cancel`, `bitloops devql projection checkpoint-file-snapshots`, `bitloops devql schema`, `bitloops devql query`, `bitloops devql connection-status`, `bitloops devql packs`, `bitloops devql architecture roles seed`, `bitloops devql architecture roles bootstrap`, `bitloops devql architecture roles classify`, `bitloops devql architecture roles status`, `bitloops devql architecture roles rename`, `bitloops devql architecture roles rules draft`, `bitloops devql architecture roles proposal show`, `bitloops devql knowledge add`, `bitloops devql knowledge associate`, `bitloops devql knowledge refresh`, `bitloops devql knowledge versions`, `bitloops devql navigation-context status`, `bitloops devql navigation-context materialise`, `bitloops devql navigation-context accept`, `bitloops devql test-harness ingest-tests`, `bitloops devql test-harness ingest-coverage`, `bitloops devql test-harness ingest-coverage-batch`, `bitloops devql test-harness ingest-results`";
-const SCHEMA_SCOPE_REQUIRED_MESSAGE: &str = "`bitloops devql schema` requires a Git repository scope. Run it from within a repository or use `bitloops devql schema --global`.";
+pub(crate) const MISSING_SUBCOMMAND_MESSAGE: &str = "missing subcommand. Use one of: `cycloops devql init`, `cycloops devql analytics sql`, `cycloops devql tasks enqueue`, `cycloops devql tasks watch`, `cycloops devql tasks status`, `cycloops devql tasks list`, `cycloops devql tasks pause`, `cycloops devql tasks resume`, `cycloops devql tasks cancel`, `cycloops devql projection checkpoint-file-snapshots`, `cycloops devql schema`, `cycloops devql query`, `cycloops devql connection-status`, `cycloops devql packs`, `cycloops devql architecture roles seed`, `cycloops devql architecture roles bootstrap`, `cycloops devql architecture roles classify`, `cycloops devql architecture roles status`, `cycloops devql architecture roles rename`, `cycloops devql architecture roles rules draft`, `cycloops devql architecture roles proposal show`, `cycloops devql knowledge add`, `cycloops devql knowledge associate`, `cycloops devql knowledge refresh`, `cycloops devql knowledge versions`, `cycloops devql navigation-context status`, `cycloops devql navigation-context materialise`, `cycloops devql navigation-context accept`, `cycloops devql test-harness ingest-tests`, `cycloops devql test-harness ingest-coverage`, `cycloops devql test-harness ingest-coverage-batch`, `cycloops devql test-harness ingest-results`";
+const SCHEMA_SCOPE_REQUIRED_MESSAGE: &str = "`cycloops devql schema` requires a Git repository scope. Run it from within a repository or use `cycloops devql schema --global`.";
 
 async fn run_tasks_command(scope: &SlimCliRepoScope, args: DevqlTasksArgs) -> Result<()> {
     match args.command {
@@ -146,14 +146,14 @@ fn validate_task_enqueue_args(args: &DevqlTaskEnqueueArgs) -> Result<()> {
         DevqlTaskKindArg::Sync => {
             if args.backfill.is_some() {
                 bail!(
-                    "`--backfill` is only supported for `bitloops devql tasks enqueue --kind ingest`"
+                    "`--backfill` is only supported for `cycloops devql tasks enqueue --kind ingest`"
                 );
             }
         }
         DevqlTaskKindArg::Ingest => {
             if args.full || args.paths.is_some() || args.repair || args.validate {
                 bail!(
-                    "sync mode flags are only supported for `bitloops devql tasks enqueue --kind sync`"
+                    "sync mode flags are only supported for `cycloops devql tasks enqueue --kind sync`"
                 );
             }
         }

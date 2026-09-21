@@ -99,7 +99,7 @@ impl GeminiCliAgent {
         let cmd_prefix = if local_dev {
             "cargo run -- hooks gemini "
         } else {
-            "bitloops hooks gemini "
+            "cycloops hooks gemini "
         };
 
         let mut session_start = Self::parse_gemini_hook_type(&raw_hooks, "SessionStart");

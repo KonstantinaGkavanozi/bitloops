@@ -1,4 +1,4 @@
-//! `bitloops hooks ...` — shared dispatcher for agent and git hook commands.
+//! `cycloops hooks ...` — shared dispatcher for agent and git hook commands.
 use std::io::{self, Read};
 use std::path::Path;
 use std::sync::{Mutex, OnceLock};
@@ -783,6 +783,15 @@ fn route_or_enqueue_lifecycle_hook(
     hook_name: &str,
     stdin: &str,
 ) -> Result<crate::host::checkpoints::lifecycle::adapters::HookCommandOutcome> {
+    // Archiver-only mode: save the turn's code and stop. Nothing is enqueued,
+    // so no daemon and no database are involved. archive_code_for_turn_end_hook
+    // filters to TurnEnd itself, and an empty outcome emits no stdout, which is
+    // already what the async path returns.
+    if crate::utils::research_mode::archiver_only() {
+        archive_code_for_turn_end_hook(repo_root, agent_name, hook_name, stdin);
+        return Ok(crate::host::checkpoints::lifecycle::adapters::HookCommandOutcome::default());
+    }
+
     let mode = lifecycle_hook_dispatch_mode(agent_name, hook_name);
     if mode.is_async() {
         archive_code_for_turn_end_hook(repo_root, agent_name, hook_name, stdin);

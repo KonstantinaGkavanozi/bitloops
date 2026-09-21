@@ -18,7 +18,7 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 const DISABLE_POST_COMMIT_DEVQL_REFRESH_ENV: &str = "BITLOOPS_DISABLE_POST_COMMIT_DEVQL_REFRESH";
 
 fn bitloops_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_bitloops"))
+    PathBuf::from(env!("CARGO_BIN_EXE_cycloops"))
 }
 
 struct HomeEnvPaths {
