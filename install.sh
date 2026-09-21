@@ -8,6 +8,8 @@
 #   CYCLOOPS_VERSION      tag to install, e.g. v0.0.31-archiver.1  (default: latest)
 #   CYCLOOPS_INSTALL_DIR  where to put the binary  (default: ~/.local/bin)
 #   CYCLOOPS_EXPORT_DIR   archive destination      (default: the binary's own default)
+#   CYCLOOPS_FULL_CLI=1   install the full Bitloops pipeline instead of
+#                         archiver-only mode (daemon, DuckDB, DevQL, sync)
 #   CYCLOOPS_NO_PATH=1    do not touch shell rc files
 
 set -euo pipefail
@@ -154,16 +156,24 @@ main() {
     done
   fi
 
-  # --- archive destination ---
+  # --- environment ---
+  # Archiver-only by default: no daemon, no database, nothing to keep running.
   # Telemetry needs no switch here: this build reports nothing unless
   # BITLOOPS_TELEMETRY_OPTIN is set explicitly.
-  if [ -n "${CYCLOOPS_EXPORT_DIR:-}" ] && [ -z "${CYCLOOPS_NO_PATH:-}" ]; then
-    for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
-      [ -f "$rc" ] || continue
-      grep -Fqs "BITLOOPS_CODE_EXPORT_DIR" "$rc" && continue
-      printf '\n# added by %s installer\nexport BITLOOPS_CODE_EXPORT_DIR="%s"\n' \
-        "$BIN_NAME" "${CYCLOOPS_EXPORT_DIR}" >> "$rc"
-    done
+  if [ -z "${CYCLOOPS_NO_PATH:-}" ]; then
+    lines=""
+    [ -z "${CYCLOOPS_FULL_CLI:-}" ] && lines="export CYCLOOPS_ARCHIVER_ONLY=1"
+    if [ -n "${CYCLOOPS_EXPORT_DIR:-}" ]; then
+      lines="${lines}${lines:+
+}export BITLOOPS_CODE_EXPORT_DIR=\"${CYCLOOPS_EXPORT_DIR}\""
+    fi
+    if [ -n "$lines" ]; then
+      for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
+        [ -f "$rc" ] || continue
+        grep -Fqs "CYCLOOPS_ARCHIVER_ONLY\|BITLOOPS_CODE_EXPORT_DIR" "$rc" && continue
+        printf '\n# added by %s installer\n%s\n' "$BIN_NAME" "$lines" >> "$rc"
+      done
+    fi
   fi
 
   printf '\nInstalled to %s\n' "$dest"
@@ -173,9 +183,12 @@ main() {
 
 Next steps — open a NEW terminal, then:
 
-  ${BIN_NAME} daemon start      # leave this running in its own terminal
   cd /path/to/your/repo
-  ${BIN_NAME} init              # tick every agent you use; "Skip for now" for both embedding prompts
+  ${BIN_NAME} init              # tick every agent you use
+
+Archiver-only mode is on, so there is no daemon to start and init asks
+nothing beyond which agents to hook. Unset CYCLOOPS_ARCHIVER_ONLY for the
+full Bitloops pipeline.
 
 Archives are written to \${BITLOOPS_CODE_EXPORT_DIR:-~/Desktop/bitloops code}/.
 Set BITLOOPS_CODE_EXPORT_DIR in the environment of the terminal or app you

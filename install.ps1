@@ -11,6 +11,7 @@ param(
     [string] $Version    = 'latest',
     [string] $InstallDir = "$env:USERPROFILE\.cycloops\bin",
     [string] $ExportDir  = '',
+    [switch] $FullCli,
     [switch] $NoPath
 )
 
@@ -135,8 +136,12 @@ try {
             Info "Added $InstallDir to your user PATH"
         }
 
-        # Telemetry needs no switch here: this build reports nothing unless
-        # BITLOOPS_TELEMETRY_OPTIN is set explicitly.
+        # Archiver-only by default: no daemon, no database, nothing to keep
+        # running. Telemetry needs no switch here: this build reports nothing
+        # unless BITLOOPS_TELEMETRY_OPTIN is set explicitly.
+        if (-not $FullCli) {
+            [Environment]::SetEnvironmentVariable('CYCLOOPS_ARCHIVER_ONLY', '1', 'User')
+        }
 
         if ($ExportDir) {
             [Environment]::SetEnvironmentVariable('BITLOOPS_CODE_EXPORT_DIR', $ExportDir, 'User')
@@ -152,9 +157,12 @@ try {
 
 Next steps — open a NEW terminal (existing ones will not see the PATH change), then:
 
-  $BinName daemon start      # leave this running in its own terminal
   cd path\to\your\repo
-  $BinName init              # tick every agent you use; "Skip for now" for both embedding prompts
+  $BinName init              # tick every agent you use
+
+Archiver-only mode is on, so there is no daemon to start and init asks
+nothing beyond which agents to hook. Re-run with -FullCli for the full
+Bitloops pipeline.
 
 Archives are written to `$env:BITLOOPS_CODE_EXPORT_DIR, default %USERPROFILE%\Desktop\bitloops code.
 If OneDrive has redirected your Desktop, set BITLOOPS_CODE_EXPORT_DIR explicitly.

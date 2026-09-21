@@ -31,10 +31,28 @@ The installer downloads the latest release for your platform, checks it against 
 Then, in a **new** terminal:
 
 ```bash
-cycloops daemon start        # leave this running in its own terminal
 cd path/to/your/repo
-cycloops init                # answer as described below
+cycloops init                # tick the agents you use
 ```
+
+There is no daemon to start: the installer turns on archiver-only mode.
+
+## Archiver-only mode
+
+With `CYCLOOPS_ARCHIVER_ONLY` set, the hook saves the turn's code and stops.
+Nothing is queued, so the daemon, DuckDB, checkpoints, sync and ingest never
+run, and `init` asks only which agents to hook — no embedding prompts, no
+final checklist.
+
+This is the mode to hand to participants. It removes every failure listed
+under Troubleshooting except "the binary is not on PATH": no database locks,
+no daemon that must be restarted after an upgrade, no 45-second readiness
+timeout.
+
+Unset the variable to get the full Bitloops CLI back, in which case the rest
+of this document's daemon guidance applies and you start it with
+`cycloops daemon start`. The choices `init` offers in that mode are listed
+below.
 
 To install a specific version instead of the latest:
 
@@ -90,6 +108,7 @@ That last point matters if anyone outside the team runs this on their own reposi
 | `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default: `~/Desktop/bitloops code` |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off. It is on by default. |
 | `BITLOOPS_CODE_EXPORT_TRACE` | Any non-empty value makes the archiver print to stderr which files it saw and why each was saved or skipped. For troubleshooting. |
+| `CYCLOOPS_ARCHIVER_ONLY` | Set by the installer. Archive turns and nothing else: no daemon, no database, no sync or ingest, and `init` stops asking about them. Unset it for the full Bitloops pipeline. |
 | `BITLOOPS_TELEMETRY_OPTIN` | Telemetry is off in this build and needs no switch. Setting this to a non-empty value turns reporting on; note the compiled-in PostHog key belongs to upstream Bitloops, so the data would land in their project. `BITLOOPS_TELEMETRY_OPTOUT` still works and overrides it. |
 
 **Where to set them.** At the end of each agent turn, the `cycloops hooks ...` command that your agent launches archives the changed files itself. It needs neither the daemon nor the database. It also queues the turn for the daemon, which archives too but skips anything the hook already saved with the same content. So the variables must be set in the environment of the **agent** — the terminal or app you start Claude Code, Cursor, etc. from — not just any shell. If you run the daemon, restart it after changing the variables, because a running daemon keeps using the old ones.
@@ -108,7 +127,9 @@ The installer writes `BITLOOPS_CODE_EXPORT_DIR` to your shell profile on macOS/L
 - **macOS, agent launched from the Dock or Spotlight (not a terminal):** shell files aren't read. Use `launchctl setenv BITLOOPS_CODE_EXPORT_DIR "$HOME/bitloops-archive"` and restart the app.
 - On Windows, if your Desktop is redirected (for example by OneDrive), the default `%USERPROFILE%\Desktop\bitloops code` may not be your visible Desktop. Set `BITLOOPS_CODE_EXPORT_DIR` explicitly.
 
-## Choices you will be asked to make
+## Choices you will be asked to make (full mode only)
+
+In archiver-only mode `init` asks only which agents to hook, and the table below does not apply.
 
 `cycloops init` is interactive, so run it in a real terminal. You can accept the defaults by pressing Enter. For the code archiver only the first question really matters.
 
