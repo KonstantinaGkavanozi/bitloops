@@ -412,7 +412,7 @@ pub async fn run_delayed_restart(args: DelayedDaemonRestartArgs) -> Result<()> {
 pub async fn run_enrichments(args: EnrichmentArgs) -> Result<()> {
     let Some(command) = args.command else {
         bail!(
-            "missing subcommand. Use one of: `bitloops daemon enrichments status`, `bitloops daemon enrichments pause`, `bitloops daemon enrichments resume`, `bitloops daemon enrichments retry-failed`"
+            "missing subcommand. Use one of: `cycloops daemon enrichments status`, `cycloops daemon enrichments pause`, `cycloops daemon enrichments resume`, `cycloops daemon enrichments retry-failed`"
         );
     };
 
@@ -473,7 +473,7 @@ pub async fn launch_dashboard() -> Result<()> {
 
     let Some(choice) = daemon::choose_dashboard_launch_mode()? else {
         bail!(
-            "Bitloops daemon is not running. Start it with `bitloops daemon start`, `bitloops daemon start -d`, or `bitloops daemon start --until-stopped`."
+            "Bitloops daemon is not running. Start it with `cycloops daemon start`, `cycloops daemon start -d`, or `cycloops daemon start --until-stopped`."
         );
     };
 
@@ -508,7 +508,7 @@ fn build_server_config(args: &DaemonStartArgs) -> DashboardServerConfig {
 }
 
 fn missing_default_daemon_bootstrap_message() -> &'static str {
-    "Bitloops daemon has not been bootstrapped yet. Run `bitloops start --create-default-config` or `bitloops init --install-default-daemon`."
+    "Bitloops daemon has not been bootstrapped yet. Run `cycloops start --create-default-config` or `cycloops init --install-default-daemon`."
 }
 
 fn ensure_log_file_exists(path: &Path) -> Result<()> {

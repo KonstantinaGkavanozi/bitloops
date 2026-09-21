@@ -98,7 +98,7 @@ pub(super) fn ensure_sqlite_file_exists(db_path: &Path) -> Result<()> {
     }
 
     bail!(
-        "SQLite database file not found at {}. Run `bitloops init` to create and initialise stores.",
+        "SQLite database file not found at {}. Run `cycloops init` to create and initialise stores.",
         db_path.display()
     )
 }

@@ -89,7 +89,7 @@ mod tests {
         assert!(body.contains("lookup"));
         assert!(body.contains("read bounded ranges returned by DevQL"));
         assert!(body.contains("fall back when DevQL fails"));
-        assert!(body.contains("Do not run `bitloops devql --help`"));
+        assert!(body.contains("Do not run `cycloops devql --help`"));
         assert!(body.contains("bitloops devql query '{ selectArtefacts"));
         assert!(body.contains("searchMode: LEXICAL"));
         assert!(body.contains("default `AUTO`"));

@@ -55,7 +55,7 @@ fn run_with_writer_for_project_root(
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
-        .context("creating runtime for `bitloops init`")?;
+        .context("creating runtime for `cycloops init`")?;
     let mut input = io::Cursor::new(Vec::<u8>::new());
     runtime.block_on(run_with_io_async_for_project_root(
         args,

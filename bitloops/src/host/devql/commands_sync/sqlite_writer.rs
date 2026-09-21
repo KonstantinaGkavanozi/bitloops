@@ -788,7 +788,7 @@ fn prepare_sync_item_with_connection(
 fn open_sync_sqlite_connection(path: &PathBuf) -> Result<Connection> {
     if !path.is_file() {
         bail!(
-            "SQLite database file not found at {}. Run `bitloops init` to create and initialise stores.",
+            "SQLite database file not found at {}. Run `cycloops init` to create and initialise stores.",
             path.display()
         );
     }

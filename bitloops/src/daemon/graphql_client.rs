@@ -46,7 +46,7 @@ async fn execute_graphql_request<T: DeserializeOwned>(
 
     let runtime_started = Instant::now();
     let runtime = read_runtime_state(repo_root)?.context(
-        "Bitloops daemon is not running for this repository. Start it with `bitloops daemon start`.",
+        "Bitloops daemon is not running for this repository. Start it with `cycloops daemon start`.",
     )?;
     if let Some(trace) = trace.as_ref() {
         trace.record(
@@ -89,7 +89,7 @@ async fn execute_graphql_request<T: DeserializeOwned>(
     let response = request.send().await.map_err(|err| {
         if err.is_timeout() {
             anyhow::anyhow!(
-                "Bitloops daemon did not respond within {} seconds while sending DevQL request to {endpoint_path}. Run `bitloops daemon restart` and retry.",
+                "Bitloops daemon did not respond within {} seconds while sending DevQL request to {endpoint_path}. Run `cycloops daemon restart` and retry.",
                 super::process::DAEMON_HTTP_REQUEST_TIMEOUT.as_secs()
             )
         } else {

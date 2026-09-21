@@ -738,8 +738,8 @@ enabled = false
             "should print disabled message: {output}"
         );
         assert!(
-            output.contains("bitloops enable --capture"),
-            "should mention 'bitloops enable --capture': {output}"
+            output.contains("cycloops enable --capture"),
+            "should mention 'cycloops enable --capture': {output}"
         );
     });
 }
@@ -1044,7 +1044,7 @@ fn shell_completion_target_test() {
             create_bash_profile: false,
             want_shell: "Zsh",
             want_rc_suffix: ".zshrc",
-            want_completion: "autoload -Uz compinit && compinit && source <(bitloops completion zsh)",
+            want_completion: "autoload -Uz compinit && compinit && source <(cycloops completion zsh)",
             unsupported: false,
         },
         Case {
@@ -1052,7 +1052,7 @@ fn shell_completion_target_test() {
             create_bash_profile: false,
             want_shell: "Bash",
             want_rc_suffix: ".bashrc",
-            want_completion: "source <(bitloops completion bash)",
+            want_completion: "source <(cycloops completion bash)",
             unsupported: false,
         },
         Case {
@@ -1060,7 +1060,7 @@ fn shell_completion_target_test() {
             create_bash_profile: true,
             want_shell: "Bash",
             want_rc_suffix: ".bash_profile",
-            want_completion: "source <(bitloops completion bash)",
+            want_completion: "source <(cycloops completion bash)",
             unsupported: false,
         },
         Case {
@@ -1068,7 +1068,7 @@ fn shell_completion_target_test() {
             create_bash_profile: false,
             want_shell: "Fish",
             want_rc_suffix: ".config/fish/config.fish",
-            want_completion: "bitloops completion fish | source",
+            want_completion: "cycloops completion fish | source",
             unsupported: false,
         },
         Case {
@@ -1120,25 +1120,25 @@ fn append_shell_completion_test() {
     let cases = vec![
         Case {
             rc_file_rel: ".zshrc",
-            completion: "source <(bitloops completion zsh)",
+            completion: "source <(cycloops completion zsh)",
             pre_existing: "",
             create_parent: true,
         },
         Case {
             rc_file_rel: ".zshrc",
-            completion: "source <(bitloops completion zsh)",
+            completion: "source <(cycloops completion zsh)",
             pre_existing: "# existing\n",
             create_parent: true,
         },
         Case {
             rc_file_rel: ".config/fish/config.fish",
-            completion: "bitloops completion fish | source",
+            completion: "cycloops completion fish | source",
             pre_existing: "",
             create_parent: false,
         },
         Case {
             rc_file_rel: ".config/fish/config.fish",
-            completion: "bitloops completion fish | source",
+            completion: "cycloops completion fish | source",
             pre_existing: "",
             create_parent: true,
         },
@@ -1184,7 +1184,7 @@ fn run_post_install_shell_completion_with_io_yes_appends() {
             let rc_file = home.path().join(".zshrc");
             let content = fs::read_to_string(&rc_file).unwrap();
             assert!(content.contains(SHELL_COMPLETION_COMMENT), "{content}");
-            assert!(content.contains("bitloops completion zsh"), "{content}");
+            assert!(content.contains("cycloops completion zsh"), "{content}");
         },
     );
 }
@@ -1225,7 +1225,7 @@ fn run_post_install_shell_completion_with_io_already_configured() {
             fs::write(
                 &rc_file,
                 format!(
-                    "{}\nsource <(bitloops completion zsh)\n",
+                    "{}\nsource <(cycloops completion zsh)\n",
                     SHELL_COMPLETION_COMMENT
                 ),
             )
@@ -1800,7 +1800,7 @@ fn run_enable_without_agent_installs_default_agent_and_git_hooks() {
         })
         .unwrap_err();
 
-        assert!(format!("{err:#}").contains("bitloops init"));
+        assert!(format!("{err:#}").contains("cycloops init"));
         assert!(!dir.path().join(".claude/settings.json").exists());
         assert!(!git_hooks::is_git_hook_installed(dir.path()));
     });
@@ -1844,7 +1844,7 @@ enabled = false
         })
         .unwrap_err();
 
-        assert!(format!("{err:#}").contains("bitloops init"));
+        assert!(format!("{err:#}").contains("cycloops init"));
         assert!(!dir.path().join(".claude/settings.json").exists());
     });
 }
@@ -2281,8 +2281,8 @@ fn run_enable_with_legacy_agent_flag_returns_guidance_error() {
         .unwrap_err();
 
         let rendered = format!("{err:#}");
-        assert!(rendered.contains("bitloops enable --agent cursor"));
-        assert!(rendered.contains("bitloops init --agent cursor"));
+        assert!(rendered.contains("cycloops enable --agent cursor"));
+        assert!(rendered.contains("cycloops init --agent cursor"));
         assert!(!dir.path().join(".cursor/hooks.json").exists());
         assert!(!git_hooks::is_git_hook_installed(dir.path()));
     });
@@ -2386,7 +2386,7 @@ fn enable_does_not_create_shared_repo_policy_file() {
             context_guidance_api_key_env: None,
         })
         .unwrap_err();
-        assert!(format!("{err:#}").contains("bitloops init"));
+        assert!(format!("{err:#}").contains("cycloops init"));
     });
 
     assert!(!settings_path(dir.path()).exists());
@@ -2421,7 +2421,7 @@ fn enable_with_local_flag_does_not_create_local_repo_policy_file() {
             context_guidance_api_key_env: None,
         })
         .unwrap_err();
-        assert!(format!("{err:#}").contains("bitloops init"));
+        assert!(format!("{err:#}").contains("cycloops init"));
     });
 
     assert!(!settings_local_path(dir.path()).exists());

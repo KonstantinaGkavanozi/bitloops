@@ -80,7 +80,7 @@ pub fn detect_or_select_agent(
             PolicySupportedAgents::Configured(configured) => {
                 if configured.is_empty() {
                     bail!(
-                        "no supported agents configured in the discovered Bitloops repo policy; rerun `bitloops init` interactively or pass `--agent`"
+                        "no supported agents configured in the discovered Bitloops repo policy; rerun `cycloops init` interactively or pass `--agent`"
                     );
                 }
 
@@ -91,7 +91,7 @@ pub fn detect_or_select_agent(
             }
             PolicySupportedAgents::PolicyWithoutSupported if !detected.is_empty() => {
                 bail!(
-                    "no supported agents configured in the discovered Bitloops repo policy; rerun `bitloops init` interactively or pass `--agent`"
+                    "no supported agents configured in the discovered Bitloops repo policy; rerun `cycloops init` interactively or pass `--agent`"
                 );
             }
             PolicySupportedAgents::Unconfigured | PolicySupportedAgents::PolicyWithoutSupported => {

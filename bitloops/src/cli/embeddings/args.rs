@@ -83,7 +83,7 @@ pub fn run(args: EmbeddingsArgs) -> Result<()> {
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
-        .context("creating runtime for `bitloops embeddings`")?;
+        .context("creating runtime for `cycloops embeddings`")?;
     runtime.block_on(run_async(args))
 }
 
@@ -104,7 +104,7 @@ pub(crate) fn platform_embeddings_gateway_url_override(explicit: Option<&str>) -
 pub(crate) async fn run_async(args: EmbeddingsArgs) -> Result<()> {
     let Some(command) = args.command else {
         bail!(
-            "missing subcommand. Use one of: `bitloops embeddings install`, `bitloops embeddings pull`, `bitloops embeddings doctor`, `bitloops embeddings clear-cache`"
+            "missing subcommand. Use one of: `cycloops embeddings install`, `cycloops embeddings pull`, `cycloops embeddings doctor`, `cycloops embeddings clear-cache`"
         );
     };
 

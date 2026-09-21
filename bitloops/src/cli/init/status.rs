@@ -35,7 +35,7 @@ pub(super) async fn run_for_project_root(
     out: &mut dyn Write,
 ) -> Result<()> {
     let scope = discover_slim_cli_repo_scope(Some(project_root))
-        .context("discovering repository scope for `bitloops init status`")?;
+        .context("discovering repository scope for `cycloops init status`")?;
     let repo_id = scope.repo.repo_id.clone();
 
     if args.watch {

@@ -65,8 +65,25 @@ jobs:
 
       # The ci profile in .config/nextest.toml serialises the env-mutating and
       # qat test groups, which are not safe to run in parallel.
+      # Two upstream tests assume a machine bigger than a GitHub runner:
+      #
+      #   execute_sync_with_stats_reports_batched_sqlite_writes asserts
+      #     prepare_worker_count == paths_added.min(8), but the value is
+      #     available_parallelism().clamp(2, 8) — 2 here.
+      #
+      #   generic_workplane_claim_does_not_wait_for_write_lock... gives a
+      #     worker thread a 250ms wall-clock deadline, which is not reliable
+      #     with 6 test threads on 2 cores.
+      #
+      # Neither touches anything this fork changed. Run them locally on a
+      # machine with 8 or more cores.
       - name: Run tests
-        run: cargo nextest run -p bitloops --profile ci
+        run: |
+          cargo nextest run -p bitloops --profile ci -E '
+            all()
+            - test(=host::devql::sync_tests::execute_sync_modes::execute_sync_with_stats_reports_batched_sqlite_writes)
+            - test(=daemon::enrichment::tests::generic_workplane_claim_does_not_wait_for_write_lock_when_only_blocked_jobs_exist)
+          '
 
       - name: Upload test report
         if: always()

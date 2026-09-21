@@ -21,7 +21,7 @@ pub enum InferenceCommand {
 
 pub fn run(args: InferenceArgs) -> Result<()> {
     let Some(command) = args.command else {
-        bail!("missing subcommand. Use `bitloops inference install`.");
+        bail!("missing subcommand. Use `cycloops inference install`.");
     };
 
     match command {

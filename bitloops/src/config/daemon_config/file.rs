@@ -116,7 +116,7 @@ pub fn load_daemon_settings(explicit_path: Option<&Path>) -> Result<LoadedDaemon
         Ok(data) => parse_daemon_config_text(&data, &path)?,
         Err(err) if err.kind() == std::io::ErrorKind::NotFound && explicit_path.is_none() => {
             bail!(
-                "Bitloops daemon config not found at {}. Run `bitloops start --create-default-config` or `bitloops init --install-default-daemon`.",
+                "Bitloops daemon config not found at {}. Run `cycloops start --create-default-config` or `cycloops init --install-default-daemon`.",
                 path.display()
             );
         }

@@ -1,6 +1,6 @@
 //! `cycloops hooks git <verb>` — hidden subcommand dispatcher for git hooks.
 //!
-//! Git hook scripts installed by `bitloops enable` call this subcommand.
+//! Git hook scripts installed by `cycloops enable` call this subcommand.
 //! All handlers exit 0 on success so git hooks don't block the user.
 
 use std::path::PathBuf;

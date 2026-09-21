@@ -17,7 +17,7 @@ fn cursor_rule_content() -> String {
     let body = strip_skill_frontmatter(DEVQL_EXPLORE_FIRST_SKILL).trim();
     format!(
         "---\n\
-description: Use DevQL before codebase exploration, symbol lookup, or any source-file reads. DevQL is the primary discovery tool — use `bitloops devql query` whenever locating symbols, files, tests, or implementations.\n\
+description: Use DevQL before codebase exploration, symbol lookup, or any source-file reads. DevQL is the primary discovery tool — use `cycloops devql query` whenever locating symbols, files, tests, or implementations.\n\
 alwaysApply: true\n\
 ---\n\n\
 {body}\n"

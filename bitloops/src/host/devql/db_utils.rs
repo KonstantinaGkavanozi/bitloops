@@ -278,7 +278,7 @@ pub(super) async fn duckdb_exec_path_inner(
             }
         } else if !db_path.is_file() {
             bail!(
-                "DuckDB database file not found at {}. Run `bitloops init` to create and initialise stores.",
+                "DuckDB database file not found at {}. Run `cycloops init` to create and initialise stores.",
                 db_path.display()
             );
         }
@@ -316,7 +316,7 @@ pub(super) async fn sqlite_exec_path_inner(
             }
         } else if !db_path.is_file() {
             bail!(
-                "SQLite database file not found at {}. Run `bitloops init` to create and initialise stores.",
+                "SQLite database file not found at {}. Run `cycloops init` to create and initialise stores.",
                 db_path.display()
             );
         }
@@ -351,7 +351,7 @@ pub(super) async fn sqlite_exec_batch_transactional_path(
     tokio::task::spawn_blocking(move || -> Result<()> {
         if !db_path.is_file() {
             bail!(
-                "SQLite database file not found at {}. Run `bitloops init` to create and initialise stores.",
+                "SQLite database file not found at {}. Run `cycloops init` to create and initialise stores.",
                 db_path.display()
             );
         }
@@ -398,7 +398,7 @@ pub(crate) async fn duckdb_query_rows_path(path: &Path, sql: &str) -> Result<Vec
     tokio::task::spawn_blocking(move || -> Result<Vec<Value>> {
         if !db_path.is_file() {
             bail!(
-                "DuckDB database file not found at {}. Run `bitloops init` to create and initialise stores.",
+                "DuckDB database file not found at {}. Run `cycloops init` to create and initialise stores.",
                 db_path.display()
             );
         }
@@ -439,7 +439,7 @@ pub(crate) async fn sqlite_query_rows_path(path: &Path, sql: &str) -> Result<Vec
     tokio::task::spawn_blocking(move || -> Result<Vec<Value>> {
         if !db_path.is_file() {
             bail!(
-                "SQLite database file not found at {}. Run `bitloops init` to create and initialise stores.",
+                "SQLite database file not found at {}. Run `cycloops init` to create and initialise stores.",
                 db_path.display()
             );
         }

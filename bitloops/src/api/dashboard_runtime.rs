@@ -68,7 +68,7 @@ pub(super) async fn run(
     let db_init = db::init_dashboard_db().await;
     if db_init.startup_health.has_failures() {
         bail!(
-            "dashboard database startup health check failed; run `bitloops --connection-status` for details"
+            "dashboard database startup health check failed; run `cycloops --connection-status` for details"
         );
     }
 
@@ -100,7 +100,7 @@ pub(super) async fn run(
                 .with_context(|| {
                     format!(
                         "dashboard fast TLS path failed for host {browser_host}; \
-                         run `bitloops daemon start --recheck-local-dashboard-net` once"
+                         run `cycloops daemon start --recheck-local-dashboard-net` once"
                     )
                 })?;
             log::debug!(

@@ -198,7 +198,7 @@ impl DevqlGraphqlContext {
     pub(crate) fn require_slim_request_scope(&self) -> Result<()> {
         if self.schema_mode == DevqlSchemaMode::Slim && !self.request_scope_present {
             return Err(anyhow!(
-                "the slim DevQL endpoint requires CLI repository scope; use `bitloops devql ...` or connect to `/devql/global`"
+                "the slim DevQL endpoint requires CLI repository scope; use `cycloops devql ...` or connect to `/devql/global`"
             ));
         }
         Ok(())
@@ -209,7 +209,7 @@ impl DevqlGraphqlContext {
             return Ok(());
         }
         Err(anyhow!(
-            "repo-scoped DevQL mutations require CLI repository scope; use `bitloops devql ...` against `/devql`"
+            "repo-scoped DevQL mutations require CLI repository scope; use `cycloops devql ...` against `/devql`"
         ))
     }
 

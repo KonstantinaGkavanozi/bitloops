@@ -79,7 +79,7 @@ pub fn run_version_command(check_for_updates: bool) -> Result<()> {
     } else {
         writeln!(
             out,
-            "Run `bitloops --version --check` to check for updates."
+            "Run `cycloops --version --check` to check for updates."
         )?;
     }
 

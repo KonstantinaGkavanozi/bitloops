@@ -633,7 +633,7 @@ fn summary_refresh_perf_platform_prerequisites() -> Result<String, String> {
         .is_none()
     {
         return Err(format!(
-            "run `bitloops login` first or export `{}` so the runtime can inject a platform JWT",
+            "run `cycloops login` first or export `{}` so the runtime can inject a platform JWT",
             crate::daemon::PLATFORM_GATEWAY_TOKEN_ENV
         ));
     }

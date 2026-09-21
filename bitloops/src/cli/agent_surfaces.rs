@@ -46,7 +46,7 @@ pub(crate) fn configured_agents_or_bail(start: &Path) -> Result<Vec<String>> {
     let agents = crate::config::settings::supported_agents(start)?;
     if agents.is_empty() {
         bail!(
-            "No supported agents are configured for this Bitloops project. Run `bitloops init` to select agents before enabling Bitloops."
+            "No supported agents are configured for this Bitloops project. Run `cycloops init` to select agents before enabling Bitloops."
         );
     }
     Ok(agents)

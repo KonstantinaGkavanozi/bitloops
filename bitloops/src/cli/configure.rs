@@ -121,7 +121,7 @@ async fn run_default_config(no_start: bool, out: &mut dyn Write) -> Result<()> {
         .is_some_and(|runtime| runtime.mode == crate::daemon::DaemonMode::Foreground)
     {
         bail!(
-            "cannot apply daemon config while a foreground daemon is running; stop it and rerun `bitloops configure --default-config`"
+            "cannot apply daemon config while a foreground daemon is running; stop it and rerun `cycloops configure --default-config`"
         );
     }
     let service = if no_start {
@@ -171,7 +171,7 @@ async fn run_file(path: &Path, no_start: bool, out: &mut dyn Write) -> Result<()
         .is_some_and(|runtime| runtime.mode == crate::daemon::DaemonMode::Foreground)
     {
         bail!(
-            "cannot apply daemon config while a foreground daemon is running; stop it and rerun `bitloops configure --file {}`",
+            "cannot apply daemon config while a foreground daemon is running; stop it and rerun `cycloops configure --file {}`",
             path.display()
         );
     }

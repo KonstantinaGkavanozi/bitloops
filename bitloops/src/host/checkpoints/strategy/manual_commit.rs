@@ -72,7 +72,7 @@ impl ManualCommitStrategy {
         }
     }
 
-    /// Condenses a specific session immediately, used by `bitloops doctor`.
+    /// Condenses a specific session immediately, used by `cycloops doctor`.
     ///
     pub fn condense_session_by_id(&self, session_id: &str) -> Result<()> {
         let Some(mut state) = self.backend.load_session(session_id)? else {

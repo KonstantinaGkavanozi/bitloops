@@ -463,7 +463,7 @@ pub(crate) fn validate_repo_daemon_binding(
     let Some(repo_root) = repo_root else {
         if binding.is_some() {
             anyhow::bail!(
-                "This repo is not configured to work with the current Bitloops daemon. Run `bitloops init` to bind or rebind this repo."
+                "This repo is not configured to work with the current Bitloops daemon. Run `cycloops init` to bind or rebind this repo."
             );
         }
         return Ok(());
@@ -471,7 +471,7 @@ pub(crate) fn validate_repo_daemon_binding(
 
     let Some(binding) = binding else {
         anyhow::bail!(
-            "This repo is not configured to work with the current Bitloops daemon. Run `bitloops init` to bind or rebind this repo."
+            "This repo is not configured to work with the current Bitloops daemon. Run `cycloops init` to bind or rebind this repo."
         );
     };
 
@@ -486,7 +486,7 @@ pub(crate) fn validate_repo_daemon_binding(
     }
 
     anyhow::bail!(
-        "This repo at {} is not configured to work with the current Bitloops daemon. Run `bitloops init` to bind or rebind this repo.",
+        "This repo at {} is not configured to work with the current Bitloops daemon. Run `cycloops init` to bind or rebind this repo.",
         repo_root.display()
     )
 }

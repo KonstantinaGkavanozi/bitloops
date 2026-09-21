@@ -43,7 +43,7 @@ impl IngesterHandler for CoverageIngestIngester {
                         "status": "failed",
                         "reason": "test_harness_relational_store_unavailable",
                     }),
-                    "test harness relational store is not available; configure stores.relational, create the database, and ensure the daemon is running (`bitloops start`).",
+                    "test harness relational store is not available; configure stores.relational, create the database, and ensure the daemon is running (`cycloops start`).",
                 ));
             };
 

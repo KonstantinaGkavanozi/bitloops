@@ -65,7 +65,7 @@ pub(crate) fn choose_final_setup_options(
     if !can_prompt {
         if prompt_options.show_sync_and_ingest && (sync.is_none() || ingest.is_none()) {
             bail!(
-                "`bitloops init` requires explicit `--sync=true|false` and `--ingest=true|false` choices when not running interactively."
+                "`cycloops init` requires explicit `--sync=true|false` and `--ingest=true|false` choices when not running interactively."
             );
         }
         if prompt_options.show_telemetry {
@@ -196,7 +196,7 @@ fn prompt_final_setup_selection_with_text_input(
         let mut response = String::new();
         input
             .read_line(&mut response)
-            .context("reading final setup selection for `bitloops init`")?;
+            .context("reading final setup selection for `cycloops init`")?;
         let response = response.trim().to_ascii_lowercase();
         if response.is_empty() {
             return Ok(defaults);

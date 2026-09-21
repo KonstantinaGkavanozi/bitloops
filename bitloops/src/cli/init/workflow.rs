@@ -66,7 +66,7 @@ pub(crate) async fn run_for_project_root(
 ) -> Result<()> {
     let git_root = crate::cli::enable::find_repo_root(project_root)?;
     if args.backfill.is_some() && args.ingest == Some(false) {
-        bail!("`bitloops init --backfill` cannot be combined with `--ingest=false`.");
+        bail!("`cycloops init --backfill` cannot be combined with `--ingest=false`.");
     }
     let effective_ingest = if args.backfill.is_some() {
         Some(true)
@@ -78,7 +78,7 @@ pub(crate) async fn run_for_project_root(
         && !telemetry_consent::can_prompt_interactively()
     {
         bail!(
-            "`bitloops init` requires explicit `--sync=true|false` and `--ingest=true|false` choices when not running interactively."
+            "`cycloops init` requires explicit `--sync=true|false` and `--ingest=true|false` choices when not running interactively."
         );
     }
 
