@@ -40,16 +40,20 @@ The workflow stamps the version from the tag (`BITLOOPS_BUILD_VERSION`), so
 the tag alone decides what `cycloops --version` reports.
 `bitloops/Cargo.toml` does not need bumping.
 
-Tags must be semver-parseable - `major.minor.patch[-prerelease]` - or the
-update check cannot compare them. Prereleases sort *below* their release, so
-`0.0.31-archiver.2` is newer than `0.0.31-archiver.1` but older than
-`0.0.31`.
+Tags must be semver-parseable - `major.minor.patch` - or the update check
+cannot compare them, and they must only ever increase. This fork versions
+itself independently of upstream: v0.0.1, v0.0.2, and so on. The upstream
+version it derives from is recorded in `bitloops/Cargo.toml`, not in the tag.
+
+Do not switch versioning schemes after publishing. A move from a higher
+number to a lower one reads as a downgrade, and the update check will stop
+notifying anyone.
 
 ```bash
 git checkout main
 git pull --ff-only origin main
-git tag v0.0.31-archiver.2
-git push origin v0.0.31-archiver.2
+git tag v0.0.2
+git push origin v0.0.2
 ```
 
 `scripts/release.sh` is upstream's helper. It derives the tag from
