@@ -9,7 +9,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 pub const GLOBAL_CONFIG_DIR_NAME: &str = ".config/bitloops";
 pub const CACHE_FILE_NAME: &str = "version_check.json";
 pub const DEFAULT_GITHUB_API_URL: &str =
-    "https://api.github.com/repos/bitloops/bitloops/releases/latest";
+    "https://api.github.com/repos/KonstantinaGkavanozi/bitloops/releases/latest";
 pub const CHECK_INTERVAL: Duration = Duration::from_secs(24 * 60 * 60);
 pub const HTTP_TIMEOUT: Duration = Duration::from_secs(1);
 pub const DISABLE_VERSION_CHECK_ENV: &str = "BITLOOPS_DISABLE_VERSION_CHECK";
@@ -203,19 +203,9 @@ pub fn fetch_latest_version() -> Result<String, String> {
 }
 
 pub fn update_command() -> String {
-    let fallback = "curl -fsSL https://bitloops.io/install.sh | bash".to_string();
-    let exe = match std::env::current_exe() {
-        Ok(path) => path,
-        Err(_) => return fallback,
-    };
-    let resolved = fs::canonicalize(&exe).unwrap_or(exe);
-    let resolved = resolved.to_string_lossy();
-
-    if resolved.contains("/Cellar/") || resolved.contains("/homebrew/") {
-        return "brew upgrade bitloops".to_string();
-    }
-
-    fallback
+    // This fork publishes no Homebrew tap, so there is a single upgrade path.
+    "curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.sh | bash"
+        .to_string()
 }
 
 pub fn check_and_notify(w: &mut dyn Write, current_version: &str) {
