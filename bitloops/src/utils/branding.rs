@@ -35,10 +35,10 @@ pub fn squared_capital(s: &str) -> String {
 
 pub fn bitloops_wordmark() -> String {
     if let Ok(font) = FIGlet::standard()
-        && let Some(figure) = font.convert("bitloops")
+        && let Some(figure) = font.convert("cycloops")
     {
         return figure.to_string().trim_end().to_string();
     }
 
-    squared_capital("Bitloops")
+    squared_capital("Cycloops")
 }
