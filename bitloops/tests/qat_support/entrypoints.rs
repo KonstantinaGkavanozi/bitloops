@@ -20,7 +20,7 @@ pub(crate) fn resolve_binary() -> PathBuf {
         return path;
     }
 
-    PathBuf::from(env!("CARGO_BIN_EXE_bitloops"))
+    PathBuf::from(env!("CARGO_BIN_EXE_cycloops"))
 }
 
 pub(crate) async fn run_suite_entrypoint(suite: Suite) -> Result<()> {

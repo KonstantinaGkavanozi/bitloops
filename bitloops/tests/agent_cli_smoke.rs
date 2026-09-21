@@ -121,7 +121,7 @@ fn cursor_cli_smoke_maps_basic_workflow_commit() {
 }
 
 fn bitloops_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_bitloops"))
+    PathBuf::from(env!("CARGO_BIN_EXE_cycloops"))
 }
 
 fn run_git_output_with_smoke_env(repo: &Path, args: &[&str]) -> Output {

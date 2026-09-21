@@ -15,7 +15,7 @@ use std::time::Duration;
 use tempfile::TempDir;
 
 fn bitloops_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_bitloops"))
+    PathBuf::from(env!("CARGO_BIN_EXE_cycloops"))
 }
 
 fn run_git(repo: &Path, args: &[&str]) {

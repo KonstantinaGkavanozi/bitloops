@@ -974,7 +974,7 @@ fn with_devql_host<T>(workspace: &Workspace, f: impl FnOnce(&DevqlCapabilityHost
 }
 
 fn run_bitloops(workdir: &Path, args: &[&str]) -> Output {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_bitloops"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_cycloops"));
     command.current_dir(workdir).args(args);
     apply_repo_app_env(&mut command, workdir);
     command.output().expect("execute bitloops command")

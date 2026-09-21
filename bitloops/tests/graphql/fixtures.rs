@@ -80,7 +80,7 @@ impl Drop for DaemonGuard {
 }
 
 fn daemon_command(workdir: &Path) -> Command {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_bitloops"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_cycloops"));
     command.current_dir(workdir);
     apply_repo_app_env(&mut command, workdir);
     command
