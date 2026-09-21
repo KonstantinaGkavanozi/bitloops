@@ -112,7 +112,10 @@ fn telemetry_opt_in_enables_reporting() {
             (TELEMETRY_OPTOUT_ENV, None),
         ],
         || {
-            assert!(telemetry_enabled(), "explicit opt-in should enable reporting");
+            assert!(
+                telemetry_enabled(),
+                "explicit opt-in should enable reporting"
+            );
         },
     );
 }

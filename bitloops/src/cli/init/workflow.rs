@@ -10,14 +10,12 @@ use super::workflow_output::{
 use super::{
     AgentSelector, DEFAULT_INIT_INGEST_BACKFILL, InitAgentSelection, InitArgs,
     InitEmbeddingsSetupSelection, InitFinalSetupPromptOptions, InitFinalSetupSelection,
-    InitSummaryEmbeddingsSetupSelection,
-    choose_embeddings_setup_during_init, choose_final_setup_options,
-    choose_summary_embeddings_setup_during_init, choose_summary_setup_during_init,
-    detect_or_select_agent, ensure_repo_init_files_excluded, normalize_cli_exclusions,
-    normalize_exclude_from_paths,
+    InitSummaryEmbeddingsSetupSelection, choose_embeddings_setup_during_init,
+    choose_final_setup_options, choose_summary_embeddings_setup_during_init,
+    choose_summary_setup_during_init, detect_or_select_agent, ensure_repo_init_files_excluded,
+    normalize_cli_exclusions, normalize_exclude_from_paths,
 };
 use crate::adapters::agents::AgentAdapterRegistry;
-use crate::utils::research_mode::archiver_only;
 use crate::cli::embeddings::{
     EmbeddingsInstallState, inspect_embeddings_install_state, install_or_bootstrap_embeddings,
     install_or_configure_platform_embeddings, platform_embeddings_gateway_url_override,
@@ -38,6 +36,7 @@ use crate::config::{
     RepoSemanticEmbeddingPolicy, SemanticCloneEmbeddingMode, SemanticClonesInferenceBindings,
     SemanticSummaryMode, resolve_preferred_daemon_config_path_for_repo,
 };
+use crate::utils::research_mode::archiver_only;
 
 const DEFAULT_INIT_CODE_EMBEDDINGS_PROFILE: &str = "platform_code";
 const DEFAULT_INIT_SUMMARY_GENERATION_PROFILE: &str = "summary_llm";

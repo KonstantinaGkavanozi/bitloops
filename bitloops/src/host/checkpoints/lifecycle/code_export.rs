@@ -98,8 +98,10 @@ pub(crate) fn export_turn_code_from_hook(
         return;
     }
     let transcript = fs::read(transcript_path).unwrap_or_default();
-    let model =
-        crate::host::interactions::model::resolve_interaction_model_from_bytes(model_hint, &transcript);
+    let model = crate::host::interactions::model::resolve_interaction_model_from_bytes(
+        model_hint,
+        &transcript,
+    );
     export_turn_code(repo_root, &model, &changed_files);
 }
 
@@ -186,11 +188,16 @@ pub(crate) fn export_turn_code(repo_root: &Path, model: &str, changed_files: &[S
         let sub_dir = rel.parent().unwrap_or_else(|| Path::new(""));
         let dest_dir = export_root.join(&project_name).join(sub_dir);
         if latest_archived_code(&dest_dir, &file_name).as_deref() == Some(code.as_str()) {
-            trace(&format!("skip {rel_path}: unchanged since its newest archived copy"));
+            trace(&format!(
+                "skip {rel_path}: unchanged since its newest archived copy"
+            ));
             continue;
         }
         if let Err(err) = fs::create_dir_all(&dest_dir) {
-            trace(&format!("skip {rel_path}: cannot create {} ({err})", dest_dir.display()));
+            trace(&format!(
+                "skip {rel_path}: cannot create {} ({err})",
+                dest_dir.display()
+            ));
             continue;
         }
 
@@ -198,7 +205,10 @@ pub(crate) fn export_turn_code(repo_root: &Path, model: &str, changed_files: &[S
         let record = serde_json::json!({ "model": model, "code": code });
         match serde_json::to_string_pretty(&record) {
             Ok(serialized) => match fs::write(dest_dir.join(&dest_name), serialized) {
-                Ok(()) => trace(&format!("archived {rel_path} -> {}", dest_dir.join(&dest_name).display())),
+                Ok(()) => trace(&format!(
+                    "archived {rel_path} -> {}",
+                    dest_dir.join(&dest_name).display()
+                )),
                 Err(err) => trace(&format!("skip {rel_path}: write failed ({err})")),
             },
             Err(err) => trace(&format!("skip {rel_path}: cannot serialise ({err})")),
@@ -253,7 +263,11 @@ mod tests {
         let b_dir = export_dir.join(&project_name);
 
         let a_files: Vec<_> = fs::read_dir(&a_dir).unwrap().collect();
-        assert_eq!(a_files.len(), 1, "expected exactly one exported file for src/a.rs");
+        assert_eq!(
+            a_files.len(),
+            1,
+            "expected exactly one exported file for src/a.rs"
+        );
         let a_entry = a_files.into_iter().next().unwrap().unwrap();
         let a_json: serde_json::Value =
             serde_json::from_str(&fs::read_to_string(a_entry.path()).unwrap()).unwrap();
@@ -265,7 +279,11 @@ mod tests {
             .filter_map(|entry| entry.ok())
             .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "json"))
             .collect();
-        assert_eq!(b_entries.len(), 1, "expected exactly one exported file for b.rs");
+        assert_eq!(
+            b_entries.len(),
+            1,
+            "expected exactly one exported file for b.rs"
+        );
 
         unsafe {
             env::remove_var(ENV_DIR);
@@ -290,7 +308,10 @@ mod tests {
 
         export_turn_code(&repo_root, "gpt-5.4", &["a.rs".to_string()]);
 
-        assert!(!export_dir.exists(), "export dir should not be created when disabled");
+        assert!(
+            !export_dir.exists(),
+            "export dir should not be created when disabled"
+        );
 
         unsafe {
             env::remove_var(ENV_DIR);
