@@ -132,6 +132,14 @@ try {
     Copy-Item $exeSrc.FullName $exeDest -Force
     Copy-Item $dllSrc.FullName (Join-Path $InstallDir 'duckdb.dll') -Force
 
+    # Strip Mark of the Web. Invoke-WebRequest does not usually set it, but a
+    # zip that reached this machine by some other route carries it into every
+    # extracted file, and SmartScreen then blocks an unsigned binary on first
+    # run. The checksum was already verified above, so this removes a prompt
+    # rather than a check. No-op when the tag is absent.
+    Unblock-File -Path $exeDest -ErrorAction SilentlyContinue
+    Unblock-File -Path (Join-Path $InstallDir 'duckdb.dll') -ErrorAction SilentlyContinue
+
     # --- 5. PATH and research defaults ---
     if (-not $NoPath) {
         $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')

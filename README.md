@@ -35,10 +35,35 @@ lets you read it before running it.
 
 **Windows, without running a script at all**
 
-Take the zip for your architecture from the
-[latest release](https://github.com/KonstantinaGkavanozi/bitloops/releases/latest),
-extract `cycloops.exe` and `duckdb.dll` together into a folder, and add that
-folder to your PATH. Keep the two files side by side.
+```powershell
+# 1. Download the zip for your architecture, and checksums-sha256.txt, from
+#    https://github.com/KonstantinaGkavanozi/bitloops/releases/latest
+
+# 2. Check it matches the published checksum before trusting it
+Get-FileHash .\cycloops-x86_64-pc-windows-msvc.zip -Algorithm SHA256
+Get-Content .\checksums-sha256.txt | Select-String cycloops-x86_64-pc-windows-msvc
+
+# 3. Remove Mark of the Web BEFORE extracting, so the tag is not inherited
+Unblock-File .\cycloops-x86_64-pc-windows-msvc.zip
+
+# 4. Extract, keeping cycloops.exe and duckdb.dll together
+Expand-Archive .\cycloops-x86_64-pc-windows-msvc.zip -DestinationPath $env:USERPROFILE\.cycloops\bin
+
+# 5. Put it on your PATH
+[Environment]::SetEnvironmentVariable('Path',
+  [Environment]::GetEnvironmentVariable('Path','User') + ";$env:USERPROFILE\.cycloops\bin", 'User')
+```
+
+Step 3 is the one that matters. A zip downloaded through a browser tags every
+extracted file with a zone identifier, and SmartScreen blocks an unsigned
+binary carrying that tag - the "Windows protected your PC" dialog. Unblocking
+the zip first means the extracted files are never tagged.
+
+If the dialog appears anyway, that is SmartScreen saying the binary has no
+reputation, not that it found anything wrong: these releases are unsigned,
+because code signing needs a certificate this project does not have. Choose
+**More info** then **Run anyway** only after step 2 has matched - the
+checksum is what tells you the file is the one we published.
 
 No Rust toolchain and no build required. The installer picks the right
 prebuilt binary, checks it against the published SHA-256, and puts it on your

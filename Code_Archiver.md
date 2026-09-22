@@ -32,10 +32,37 @@ Windows Defender as `Trojan:Win32/ClickFix`, because that is exactly how a
 class of real attacks is delivered. Downloading first lets Defender scan it
 and lets you read it.
 
-If you would rather run no script at all, take the zip from the
-[latest release](https://github.com/KonstantinaGkavanozi/bitloops/releases/latest),
-extract `cycloops.exe` and `duckdb.dll` into one folder, and put that folder
-on your PATH.
+**Windows, without running a script at all**
+
+```powershell
+# 1. Download the zip for your architecture, and checksums-sha256.txt, from
+#    https://github.com/KonstantinaGkavanozi/bitloops/releases/latest
+
+# 2. Check it matches the published checksum before trusting it
+Get-FileHash .\cycloops-x86_64-pc-windows-msvc.zip -Algorithm SHA256
+Get-Content .\checksums-sha256.txt | Select-String cycloops-x86_64-pc-windows-msvc
+
+# 3. Remove Mark of the Web BEFORE extracting, so the tag is not inherited
+Unblock-File .\cycloops-x86_64-pc-windows-msvc.zip
+
+# 4. Extract, keeping cycloops.exe and duckdb.dll together
+Expand-Archive .\cycloops-x86_64-pc-windows-msvc.zip -DestinationPath $env:USERPROFILE\.cycloops\bin
+
+# 5. Put it on your PATH
+[Environment]::SetEnvironmentVariable('Path',
+  [Environment]::GetEnvironmentVariable('Path','User') + ";$env:USERPROFILE\.cycloops\bin", 'User')
+```
+
+Step 3 is the one that matters. A zip downloaded through a browser tags every
+extracted file with a zone identifier, and SmartScreen blocks an unsigned
+binary carrying that tag - the "Windows protected your PC" dialog. Unblocking
+the zip first means the extracted files are never tagged.
+
+If the dialog appears anyway, that is SmartScreen saying the binary has no
+reputation, not that it found anything wrong: these releases are unsigned,
+because code signing needs a certificate this project does not have. Choose
+**More info** then **Run anyway** only after step 2 has matched - the
+checksum is what tells you the file is the one we published.
 
 The installer downloads the latest release for your platform, checks it against the published SHA-256, and puts `cycloops` on your PATH. Telemetry is off in the build itself, so the installer sets nothing for it. On Windows it also installs `duckdb.dll` next to the binary; keep the two together.
 
