@@ -125,7 +125,7 @@ try {
         try {
             Move-Item $exeDest "$exeDest.bak" -Force
         } catch {
-            Die "Could not replace $exeDest: a daemon is probably still running. Stop it (``$BinName daemon stop``) and re-run."
+            Die "Could not replace ${exeDest} - a daemon is probably still running. Stop it (``$BinName daemon stop``) and re-run."
         }
     }
 
