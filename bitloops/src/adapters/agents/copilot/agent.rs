@@ -226,7 +226,7 @@ impl CopilotCliAgent {
         let repo_root = crate::utils::paths::repo_root().or_else(|_| {
             std::env::current_dir().map_err(|err| anyhow!("failed to get current directory: {err}"))
         })?;
-        Ok(repo_root.join(".github/hooks/bitloops.json"))
+        Ok(repo_root.join(".github/hooks/cycloops.json"))
     }
 
     fn get_transcript_position_impl(path: &str) -> Result<usize> {

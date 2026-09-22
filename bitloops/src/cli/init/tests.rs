@@ -2,6 +2,7 @@ use super::*;
 use crate::cli::{Cli, Commands};
 use crate::test_support::git_fixtures::init_test_repo;
 use crate::test_support::process_state::with_process_state;
+use crate::utils::research_mode::FULL_CLI_ENV;
 use crate::utils::platform_dirs::{TestPlatformDirOverrides, with_test_platform_dir_overrides};
 
 use clap::Parser;
@@ -392,7 +393,7 @@ fn init_embeddings_runtime_platform_configures_semantic_policy_without_prompt() 
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let install_called = Arc::new(Mutex::new(false));
@@ -486,7 +487,7 @@ fn init_writes_repo_policy_without_creating_daemon_config() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             let default_config_path =
                 crate::config::default_daemon_config_path().expect("default config path");
@@ -517,12 +518,57 @@ fn init_writes_repo_policy_without_creating_daemon_config() {
 }
 
 #[test]
+fn init_in_archiver_only_mode_installs_hooks_without_any_further_prompts() {
+    let repo = TempDir::new().expect("repo");
+    let app_dirs = TempDir::new().expect("app dirs");
+    setup_git_repo(&repo);
+
+    // No FULL_CLI_ENV: this is what an unconfigured install does, and it is
+    // the only mode study participants ever see. Every other test in this
+    // file opts into full mode, so without this one the default path has no
+    // coverage at all.
+    with_process_state(None, &[(FULL_CLI_ENV, None)], || {
+        with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
+            let mut out = Vec::new();
+            run_with_writer_for_project_root(init_args(), repo.path(), &mut out, None)
+                .expect("init should complete");
+
+            let rendered = String::from_utf8(out).expect("utf8 output");
+            for unwanted in [
+                "embeddings",
+                "Embeddings",
+                "summary",
+                "Summary",
+                "Sync codebase",
+                "Import commit history",
+            ] {
+                assert!(
+                    !rendered.contains(unwanted),
+                    "archiver-only init should not mention {unwanted:?}, got:\n{rendered}"
+                );
+            }
+            assert!(
+                rendered.contains("Archiver-only mode"),
+                "init should say which mode it ran in, got:\n{rendered}"
+            );
+
+            let policy = std::fs::read_to_string(
+                repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME),
+            )
+            .expect("read repo policy");
+            assert!(policy.contains("sync_enabled = false"));
+            assert!(policy.contains("ingest_enabled = false"));
+        })
+    });
+}
+
+#[test]
 fn init_binds_existing_default_daemon_config_without_starting_it() {
     let repo = TempDir::new().expect("repo");
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             let config_path =
                 crate::config::bootstrap_default_daemon_environment().expect("bootstrap config");
@@ -551,7 +597,7 @@ fn init_reconciles_repo_watcher_when_daemon_is_running() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             let config_path =
                 crate::config::bootstrap_default_daemon_environment().expect("bootstrap config");
@@ -588,7 +634,7 @@ fn init_runtime_start_installs_managed_inference_when_daemon_config_requires_it(
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let install_called = Arc::new(Mutex::new(false));
@@ -662,7 +708,7 @@ fn init_runtime_start_fails_before_start_init_when_managed_inference_install_fai
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let start_called = Arc::new(Mutex::new(false));
@@ -717,7 +763,7 @@ fn init_config_only_run_does_not_install_managed_inference() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let install_called = Arc::new(Mutex::new(false));
@@ -755,7 +801,7 @@ fn init_runtime_start_does_not_install_for_custom_managed_inference_command() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             let config_path =
                 crate::config::ensure_daemon_config_exists().expect("write default daemon config");
@@ -826,7 +872,7 @@ fn init_runtime_start_does_not_print_install_line_for_complete_managed_runtime()
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             let config_path =
                 crate::config::ensure_daemon_config_exists().expect("write default daemon config");
@@ -906,7 +952,7 @@ fn init_runtime_start_includes_semantic_lanes_and_repo_policy() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let captured_input = Arc::new(Mutex::new(None::<serde_json::Value>));
@@ -978,7 +1024,7 @@ fn init_runtime_start_can_select_summary_embeddings_without_code_embeddings() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
@@ -1056,7 +1102,7 @@ fn init_prompts_for_embeddings_and_summary_provider_setup() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::cli::telemetry_consent::with_test_tty_override(true, || {
                 let mut out = Vec::new();
@@ -1099,7 +1145,7 @@ fn init_prompts_for_provider_setup_when_existing_policy_profiles_are_unconfigure
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
             crate::config::settings::set_repo_semantic_embedding_policy(
@@ -1156,7 +1202,7 @@ fn init_prompts_for_summaries_when_existing_policy_previously_skipped_them() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
@@ -1213,7 +1259,7 @@ fn init_prompts_for_summary_embeddings_when_code_embeddings_are_skipped() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
@@ -1271,7 +1317,7 @@ fn init_summary_embeddings_mode_off_unsets_summary_embeddings_without_prompt() {
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
@@ -1327,7 +1373,7 @@ fn init_summary_embeddings_mode_on_uses_existing_embeddings_provider_without_pro
     let app_dirs = TempDir::new().expect("app dirs");
     setup_git_repo(&repo);
 
-    with_process_state(None, &[], || {
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
         with_test_platform_dir_overrides(app_dir_overrides(&app_dirs), || {
             crate::config::ensure_daemon_config_exists().expect("write default daemon config");
             let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);

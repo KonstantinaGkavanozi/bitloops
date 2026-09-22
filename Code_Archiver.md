@@ -20,17 +20,22 @@ One command. No Rust, no build tools, no replacing an existing binary.
 curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.sh | bash
 ```
 
-**Windows (PowerShell)**
+**Windows (PowerShell)** — download, then run:
 
 ```powershell
-irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
+curl.exe -fsSL -o install.ps1 https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1
+.\install.ps1
 ```
 
-**Windows (CMD)**
+Two steps on purpose: piping a downloaded script into `iex` is flagged by
+Windows Defender as `Trojan:Win32/ClickFix`, because that is exactly how a
+class of real attacks is delivered. Downloading first lets Defender scan it
+and lets you read it.
 
-```cmd
-curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.cmd -o install.cmd && install.cmd && del install.cmd
-```
+If you would rather run no script at all, take the zip from the
+[latest release](https://github.com/KonstantinaGkavanozi/bitloops/releases/latest),
+extract `cycloops.exe` and `duckdb.dll` into one folder, and put that folder
+on your PATH.
 
 The installer downloads the latest release for your platform, checks it against the published SHA-256, and puts `cycloops` on your PATH. Telemetry is off in the build itself, so the installer sets nothing for it. On Windows it also installs `duckdb.dll` next to the binary; keep the two together.
 
@@ -106,6 +111,25 @@ Behaviour worth knowing:
 - There is **no ignore list**. A changed `.env` or key file is archived like any other file, in plain text.
 
 That last point matters if anyone outside the team runs this on their own repositories. Say so in your consent material, or add a denylist before handing the tool out.
+
+## A note on Copilot
+
+The Copilot adapter targets the **GitHub Copilot CLI**, the agentic terminal
+tool. It reads sessions from `~/.copilot/session-state/` and writes its hook
+config to `.github/hooks/cycloops.json` **inside your repository**, unlike the
+other agents, whose config lives under your home directory.
+
+Two consequences:
+
+- `.github/` is usually tracked, so the file will show up in `git status` and
+  may get committed. Add it to `.gitignore` if you would rather it did not.
+- Copilot's inline completions and Copilot Chat inside VS Code are **not**
+  covered. They emit no lifecycle hooks, so nothing triggers archiving. Only
+  the CLI is.
+
+If `init` reports success but turns are not archived, open
+`.github/hooks/cycloops.json` and check there is an `agent-stop` entry —
+`init` treats several hooks as optional and will report success without it.
 
 ## Settings
 

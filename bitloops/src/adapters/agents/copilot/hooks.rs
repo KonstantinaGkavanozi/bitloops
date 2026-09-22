@@ -7,7 +7,7 @@ use serde_json::{Map, Value, json};
 use super::types::CopilotHooksFile;
 
 const HOOKS_DIR: &str = ".github/hooks";
-const HOOKS_FILE_NAME: &str = "bitloops.json";
+const HOOKS_FILE_NAME: &str = "cycloops.json";
 const BITLOOPS_HOOK_PREFIX: &str = "cycloops hooks copilot ";
 const LOCAL_DEV_HOOK_PREFIX: &str = "cargo run -- hooks copilot ";
 const MANAGED_HOOK_PREFIXES: [&str; 2] = [BITLOOPS_HOOK_PREFIX, LOCAL_DEV_HOOK_PREFIX];
@@ -526,7 +526,7 @@ mod tests {
   }
 }
 "#;
-        std::fs::write(hooks_dir.join("bitloops.json"), content).expect("write");
+        std::fs::write(hooks_dir.join("cycloops.json"), content).expect("write");
         assert!(are_hooks_installed_at(dir.path()));
     }
 
@@ -545,7 +545,7 @@ mod tests {
   }
 }
 "#;
-        std::fs::write(hooks_dir.join("bitloops.json"), content).expect("write");
+        std::fs::write(hooks_dir.join("cycloops.json"), content).expect("write");
         assert!(!are_hooks_installed_at(dir.path()));
     }
 
@@ -562,7 +562,7 @@ mod tests {
         .expect("install");
         assert_eq!(installed, 8);
         let content =
-            fs::read_to_string(dir.path().join(".github/hooks/bitloops.json")).expect("read");
+            fs::read_to_string(dir.path().join(".github/hooks/cycloops.json")).expect("read");
         assert!(content.contains("cargo run -- hooks copilot session-start"));
         assert!(!content.contains("cycloops hooks copilot session-start"));
     }
@@ -574,7 +574,7 @@ mod tests {
         let hooks_dir = dir.path().join(".github/hooks");
         fs::create_dir_all(&hooks_dir).expect("mkdir");
         fs::write(
-            hooks_dir.join("bitloops.json"),
+            hooks_dir.join("cycloops.json"),
             r#"{
   "version": 1,
   "customField": {"ok": true},
@@ -593,7 +593,7 @@ mod tests {
             None,
         )
         .expect("install");
-        let content = fs::read_to_string(hooks_dir.join("bitloops.json")).expect("read");
+        let content = fs::read_to_string(hooks_dir.join("cycloops.json")).expect("read");
         let value: Value = serde_json::from_str(&content).expect("json");
         assert!(value.get("customField").is_some());
         assert!(
@@ -612,7 +612,7 @@ mod tests {
         let hooks_dir = dir.path().join(".github/hooks");
         fs::create_dir_all(&hooks_dir).expect("mkdir");
         fs::write(
-            hooks_dir.join("bitloops.json"),
+            hooks_dir.join("cycloops.json"),
             r#"{
   "version": 1,
   "hooks": {
@@ -630,7 +630,7 @@ mod tests {
             None,
         )
         .expect("install");
-        let content = fs::read_to_string(hooks_dir.join("bitloops.json")).expect("read");
+        let content = fs::read_to_string(hooks_dir.join("cycloops.json")).expect("read");
         assert!(content.contains("echo custom-session-start"));
         assert!(content.contains("cycloops hooks copilot session-start"));
     }
@@ -642,7 +642,7 @@ mod tests {
         let hooks_dir = dir.path().join(".github/hooks");
         fs::create_dir_all(&hooks_dir).expect("mkdir");
         fs::write(
-            hooks_dir.join("bitloops.json"),
+            hooks_dir.join("cycloops.json"),
             r#"{
   "version": 1,
   "hooks": {
@@ -664,7 +664,7 @@ mod tests {
         .expect("install");
         assert_eq!(installed, 7);
 
-        let content = fs::read_to_string(hooks_dir.join("bitloops.json")).expect("read");
+        let content = fs::read_to_string(hooks_dir.join("cycloops.json")).expect("read");
         assert_eq!(
             content
                 .matches("cycloops hooks copilot user-prompt-submitted")
@@ -687,7 +687,7 @@ mod tests {
             None,
         )
         .expect("install");
-        let hooks_path = dir.path().join(".github/hooks/bitloops.json");
+        let hooks_path = dir.path().join(".github/hooks/cycloops.json");
         fs::write(
             &hooks_path,
             r#"{

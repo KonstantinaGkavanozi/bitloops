@@ -87,14 +87,14 @@ cycloops --version
 ```
 
 ```powershell
-irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
+curl.exe -fsSL -o install.ps1 https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1
+.\install.ps1
 cycloops --version
 ```
 
-```cmd
-curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.cmd -o install.cmd && install.cmd && del install.cmd
-cycloops --version
-```
+Also check the manual path: download the release zip, extract, add to PATH.
+That is the route for anyone whose endpoint protection objects to scripts at
+all, and it is the one to give participants if Defender starts complaining.
 
 Then in a scratch repo run `cycloops init`, do one agent turn, and confirm a
 JSON file lands in the export folder. Run `init` a second time and confirm it
