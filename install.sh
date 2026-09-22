@@ -157,12 +157,12 @@ main() {
   fi
 
   # --- environment ---
-  # Archiver-only by default: no daemon, no database, nothing to keep running.
-  # Telemetry needs no switch here: this build reports nothing unless
-  # BITLOOPS_TELEMETRY_OPTIN is set explicitly.
+  # Nothing is written for archiver-only mode: it is the binary's default, so
+  # it holds however the CLI is launched. Telemetry likewise reports nothing
+  # unless BITLOOPS_TELEMETRY_OPTIN is set explicitly.
   if [ -z "${CYCLOOPS_NO_PATH:-}" ]; then
     lines=""
-    [ -z "${CYCLOOPS_FULL_CLI:-}" ] && lines="export CYCLOOPS_ARCHIVER_ONLY=1"
+    [ -n "${CYCLOOPS_FULL_CLI:-}" ] && lines="export CYCLOOPS_FULL_CLI=1"
     if [ -n "${CYCLOOPS_EXPORT_DIR:-}" ]; then
       lines="${lines}${lines:+
 }export BITLOOPS_CODE_EXPORT_DIR=\"${CYCLOOPS_EXPORT_DIR}\""
@@ -170,7 +170,7 @@ main() {
     if [ -n "$lines" ]; then
       for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
         [ -f "$rc" ] || continue
-        grep -Fqs "CYCLOOPS_ARCHIVER_ONLY\|BITLOOPS_CODE_EXPORT_DIR" "$rc" && continue
+        grep -Fqs "CYCLOOPS_FULL_CLI\|BITLOOPS_CODE_EXPORT_DIR" "$rc" && continue
         printf '\n# added by %s installer\n%s\n' "$BIN_NAME" "$lines" >> "$rc"
       done
     fi
@@ -186,8 +186,8 @@ Next steps — open a NEW terminal, then:
   cd /path/to/your/repo
   ${BIN_NAME} init              # tick every agent you use
 
-Archiver-only mode is on, so there is no daemon to start and init asks
-nothing beyond which agents to hook. Unset CYCLOOPS_ARCHIVER_ONLY for the
+Archiver-only mode is the default, so there is no daemon to start and init
+asks nothing beyond which agents to hook. Set CYCLOOPS_FULL_CLI=1 for the
 full Bitloops pipeline.
 
 Archives are written to \${BITLOOPS_CODE_EXPORT_DIR:-~/Desktop/cycloops-code}/.

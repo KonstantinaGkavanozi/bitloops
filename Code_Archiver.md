@@ -45,7 +45,7 @@ There is no daemon to start: the installer turns on archiver-only mode.
 
 ## Archiver-only mode
 
-With `CYCLOOPS_ARCHIVER_ONLY` set, the hook saves the turn's code and stops.
+By default the hook saves the turn's code and stops.
 Nothing is queued, so the daemon, DuckDB, checkpoints, sync and ingest never
 run, and `init` asks only which agents to hook — no embedding prompts, no
 final checklist.
@@ -55,7 +55,7 @@ under Troubleshooting except "the binary is not on PATH": no database locks,
 no daemon that must be restarted after an upgrade, no 45-second readiness
 timeout.
 
-Unset the variable to get the full Bitloops CLI back, in which case the rest
+Set `CYCLOOPS_FULL_CLI=1` to get the full Bitloops CLI, in which case the rest
 of this document's daemon guidance applies and you start it with
 `cycloops daemon start`. The choices `init` offers in that mode are listed
 below.
@@ -114,7 +114,7 @@ That last point matters if anyone outside the team runs this on their own reposi
 | `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default: `~/Desktop/cycloops-code` |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off. It is on by default. |
 | `BITLOOPS_CODE_EXPORT_TRACE` | Any non-empty value makes the archiver print to stderr which files it saw and why each was saved or skipped. For troubleshooting. |
-| `CYCLOOPS_ARCHIVER_ONLY` | Set by the installer. Archive turns and nothing else: no daemon, no database, no sync or ingest, and `init` stops asking about them. Unset it for the full Bitloops pipeline. |
+| `CYCLOOPS_FULL_CLI` | Unset by default, which means archive turns and nothing else: no daemon, no database, no sync or ingest, and `init` asks only which agents to hook. Set it to run the full Bitloops pipeline. |
 | `BITLOOPS_TELEMETRY_OPTIN` | Telemetry is off in this build and needs no switch. Setting this to a non-empty value turns reporting on; note the compiled-in PostHog key belongs to upstream Bitloops, so the data would land in their project. `BITLOOPS_TELEMETRY_OPTOUT` still works and overrides it. |
 
 **Where to set them.** At the end of each agent turn, the `cycloops hooks ...` command that your agent launches archives the changed files itself. It needs neither the daemon nor the database. It also queues the turn for the daemon, which archives too but skips anything the hook already saved with the same content. So the variables must be set in the environment of the **agent** — the terminal or app you start Claude Code, Cursor, etc. from — not just any shell. If you run the daemon, restart it after changing the variables, because a running daemon keeps using the old ones.

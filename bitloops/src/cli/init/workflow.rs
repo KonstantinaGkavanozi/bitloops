@@ -237,8 +237,8 @@ pub(crate) async fn run_for_project_root(
     if archiver_only() {
         writeln!(
             out,
-            "\nArchiver-only mode ({}). Hooks are installed; nothing else runs.\nNo daemon to start. Archives go to the folder named by BITLOOPS_CODE_EXPORT_DIR.",
-            crate::utils::research_mode::ARCHIVER_ONLY_ENV
+            "\nArchiver-only mode. Hooks are installed; nothing else runs.\nNo daemon to start. Archives go to the folder named by BITLOOPS_CODE_EXPORT_DIR.\nSet {}=1 for the full Bitloops CLI.",
+            crate::utils::research_mode::FULL_CLI_ENV
         )?;
         out.flush()?;
     }

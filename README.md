@@ -88,7 +88,7 @@ own repositories, say so in your consent material, or add a denylist first.
 | `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default `~/Desktop/cycloops-code` |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off |
 | `BITLOOPS_CODE_EXPORT_TRACE` | Print to stderr which files were seen and why each was saved or skipped |
-| `CYCLOOPS_ARCHIVER_ONLY` | Set by the installer. Archive and nothing else — see below |
+| `CYCLOOPS_FULL_CLI` | Unset by default. Set it to run the full Bitloops pipeline — see below |
 | `BITLOOPS_TELEMETRY_OPTIN` | Telemetry is off. Setting this turns it on |
 
 The environment variables keep their `BITLOOPS_` prefix: they are read by
@@ -97,13 +97,13 @@ unchanged upstream code. The command is `cycloops`, the settings are
 
 ## Two modes
 
-**Archiver-only** (the default, set by the installer). The agent hook saves the
+**Archiver-only** (the default, with nothing to configure). The agent hook saves the
 turn's code and stops. No daemon, no database, no sync, no checkpoints, and
 `init` asks only which agents to hook. This is the mode to give study
 participants — there is nothing to keep running and nothing that can fail in a
 way they would have to debug.
 
-**Full CLI.** Unset `CYCLOOPS_ARCHIVER_ONLY` and everything the upstream
+**Full CLI.** Set `CYCLOOPS_FULL_CLI=1` and everything the upstream
 project does is still there: the daemon, DevQL, the dashboard, embeddings,
 checkpoints, commit history import. Start it with `cycloops daemon start`.
 Note that `init` will then offer Bitloops Cloud for embeddings, which
