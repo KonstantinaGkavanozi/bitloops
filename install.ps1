@@ -125,7 +125,7 @@ try {
         try {
             Move-Item $exeDest "$exeDest.bak" -Force
         } catch {
-            Die "Could not replace $exeDest — a daemon is probably still running. Stop it (``$BinName daemon stop``) and re-run."
+            Die "Could not replace $exeDest: a daemon is probably still running. Stop it (``$BinName daemon stop``) and re-run."
         }
     }
 
@@ -167,7 +167,7 @@ try {
 
     Write-Host @"
 
-Next steps — open a NEW terminal (existing ones will not see the PATH change), then:
+Next steps - open a NEW terminal (existing ones will not see the PATH change), then:
 
   cd path\to\your\repo
   $BinName init              # tick every agent you use
