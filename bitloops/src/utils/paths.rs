@@ -475,7 +475,7 @@ mod tests {
             (".claude", true),
             (".claude/settings.json", true),
             (".github/hooks", true),
-            (".github/hooks/bitloops.json", true),
+            (".github/hooks/cycloops.json", true),
             (".codex", true),
             (".codex/hooks.json", true),
             (".cursor", true),

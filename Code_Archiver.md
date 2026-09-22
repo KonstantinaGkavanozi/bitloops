@@ -112,6 +112,25 @@ Behaviour worth knowing:
 
 That last point matters if anyone outside the team runs this on their own repositories. Say so in your consent material, or add a denylist before handing the tool out.
 
+## A note on Copilot
+
+The Copilot adapter targets the **GitHub Copilot CLI**, the agentic terminal
+tool. It reads sessions from `~/.copilot/session-state/` and writes its hook
+config to `.github/hooks/cycloops.json` **inside your repository**, unlike the
+other agents, whose config lives under your home directory.
+
+Two consequences:
+
+- `.github/` is usually tracked, so the file will show up in `git status` and
+  may get committed. Add it to `.gitignore` if you would rather it did not.
+- Copilot's inline completions and Copilot Chat inside VS Code are **not**
+  covered. They emit no lifecycle hooks, so nothing triggers archiving. Only
+  the CLI is.
+
+If `init` reports success but turns are not archived, open
+`.github/hooks/cycloops.json` and check there is an `agent-stop` entry —
+`init` treats several hooks as optional and will report success without it.
+
 ## Settings
 
 | Variable | Effect |
