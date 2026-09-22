@@ -136,11 +136,11 @@ try {
             Info "Added $InstallDir to your user PATH"
         }
 
-        # Archiver-only by default: no daemon, no database, nothing to keep
-        # running. Telemetry needs no switch here: this build reports nothing
-        # unless BITLOOPS_TELEMETRY_OPTIN is set explicitly.
-        if (-not $FullCli) {
-            [Environment]::SetEnvironmentVariable('CYCLOOPS_ARCHIVER_ONLY', '1', 'User')
+        # Nothing is written for archiver-only mode: it is the binary's
+        # default, so it holds however the CLI is launched. Telemetry likewise
+        # reports nothing unless BITLOOPS_TELEMETRY_OPTIN is set explicitly.
+        if ($FullCli) {
+            [Environment]::SetEnvironmentVariable('CYCLOOPS_FULL_CLI', '1', 'User')
         }
 
         if ($ExportDir) {
@@ -160,8 +160,8 @@ Next steps — open a NEW terminal (existing ones will not see the PATH change),
   cd path\to\your\repo
   $BinName init              # tick every agent you use
 
-Archiver-only mode is on, so there is no daemon to start and init asks
-nothing beyond which agents to hook. Re-run with -FullCli for the full
+Archiver-only mode is the default, so there is no daemon to start and init
+asks nothing beyond which agents to hook. Re-run with -FullCli for the full
 Bitloops pipeline.
 
 Archives are written to `$env:BITLOOPS_CODE_EXPORT_DIR, default %USERPROFILE%\Desktop\cycloops-code.
