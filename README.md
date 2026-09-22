@@ -21,15 +21,24 @@ curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/
 
 **Windows (PowerShell)**
 
+Download the script, then run it:
+
 ```powershell
-irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
+curl.exe -fsSL -o install.ps1 https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1
+.\install.ps1
 ```
 
-**Windows (CMD)**
+Deliberately two steps. Piping a downloaded script straight into `iex` is the
+shape of a common malware delivery technique, and Windows Defender flags it
+(`Trojan:Win32/ClickFix`). Downloading first lets Defender scan the file, and
+lets you read it before running it.
 
-```cmd
-curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.cmd -o install.cmd && install.cmd && del install.cmd
-```
+**Windows, without running a script at all**
+
+Take the zip for your architecture from the
+[latest release](https://github.com/KonstantinaGkavanozi/bitloops/releases/latest),
+extract `cycloops.exe` and `duckdb.dll` together into a folder, and add that
+folder to your PATH. Keep the two files side by side.
 
 No Rust toolchain and no build required. The installer picks the right
 prebuilt binary, checks it against the published SHA-256, and puts it on your

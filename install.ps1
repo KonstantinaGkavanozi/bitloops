@@ -1,10 +1,14 @@
 # One-command installer for the Cycloops research build of Bitloops.
 #
-#   irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
+#   curl.exe -fsSL -o install.ps1 https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1
+#   .\install.ps1
 #
-# Or, to pass options, download first:
-#   irm https://raw.githubusercontent.com/.../install.ps1 -OutFile install.ps1
-#   .\install.ps1 -Version v0.0.2 -ExportDir D:\bitloops-archive
+# Download it before running it. Piping a script into iex is the shape of a
+# common malware delivery technique and Windows Defender flags it as
+# Trojan:Win32/ClickFix; downloading first lets Defender scan the file.
+#
+# Options:
+#   .\install.ps1 -Version v0.0.2 -ExportDir D:\bitloops-archive -FullCli
 
 [CmdletBinding()]
 param(

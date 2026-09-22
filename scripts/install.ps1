@@ -2,27 +2,23 @@
 #
 # This file used to be upstream's installer, pointing at bitloops/bitloops,
 # which installed the OFFICIAL Bitloops binary rather than this research
-# build. It now forwards to the right script so the old path cannot quietly
-# install the wrong thing.
+# build.
+#
+# It deliberately does NOT download and run anything: an earlier version did,
+# and Windows Defender flagged the pattern as Trojan:Win32/ClickFix. Follow
+# the instructions it prints instead.
 
-$ErrorActionPreference = 'Stop'
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-Write-Host 'Note: the installer moved to the repository root; forwarding.'
-
-$rootInstaller = Join-Path (Split-Path -Parent $PSScriptRoot) 'install.ps1'
-
-if (Test-Path $rootInstaller) {
-    & $rootInstaller @args
-    exit $LASTEXITCODE
-}
-
-$url = 'https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1'
-$tmp = Join-Path $env:TEMP ("cycloops-install-" + [Guid]::NewGuid().ToString() + ".ps1")
-try {
-    Invoke-WebRequest -Uri $url -OutFile $tmp -UseBasicParsing
-    & $tmp @args
-    exit $LASTEXITCODE
-} finally {
-    Remove-Item $tmp -Force -ErrorAction SilentlyContinue
-}
+Write-Host ''
+Write-Host 'The installer moved to the repository root.'
+Write-Host ''
+Write-Host 'From a checkout:'
+Write-Host '    .\install.ps1'
+Write-Host ''
+Write-Host 'Otherwise download it first, look at it, then run it:'
+Write-Host '    curl.exe -fsSL -o install.ps1 https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1'
+Write-Host '    .\install.ps1'
+Write-Host ''
+Write-Host 'Or take the zip from the Releases page:'
+Write-Host '    https://github.com/KonstantinaGkavanozi/bitloops/releases/latest'
+Write-Host ''
+exit 1

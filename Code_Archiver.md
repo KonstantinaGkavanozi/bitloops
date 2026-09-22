@@ -20,17 +20,22 @@ One command. No Rust, no build tools, no replacing an existing binary.
 curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.sh | bash
 ```
 
-**Windows (PowerShell)**
+**Windows (PowerShell)** — download, then run:
 
 ```powershell
-irm https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1 | iex
+curl.exe -fsSL -o install.ps1 https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.ps1
+.\install.ps1
 ```
 
-**Windows (CMD)**
+Two steps on purpose: piping a downloaded script into `iex` is flagged by
+Windows Defender as `Trojan:Win32/ClickFix`, because that is exactly how a
+class of real attacks is delivered. Downloading first lets Defender scan it
+and lets you read it.
 
-```cmd
-curl -fsSL https://raw.githubusercontent.com/KonstantinaGkavanozi/bitloops/main/install.cmd -o install.cmd && install.cmd && del install.cmd
-```
+If you would rather run no script at all, take the zip from the
+[latest release](https://github.com/KonstantinaGkavanozi/bitloops/releases/latest),
+extract `cycloops.exe` and `duckdb.dll` into one folder, and put that folder
+on your PATH.
 
 The installer downloads the latest release for your platform, checks it against the published SHA-256, and puts `cycloops` on your PATH. Telemetry is off in the build itself, so the installer sets nothing for it. On Windows it also installs `duckdb.dll` next to the binary; keep the two together.
 
