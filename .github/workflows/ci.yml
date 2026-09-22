@@ -26,6 +26,22 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Windows PowerShell 5.1 reads a BOM-less file as CP1252, which turns a
+      # UTF-8 em dash into a smart quote - and PowerShell treats smart quotes
+      # as string delimiters, so one comment can make the whole script fail to
+      # parse. Keeping the installers ASCII removes the class of bug.
+      - name: Installers must be ASCII
+        run: |
+          status=0
+          for f in install.sh install.ps1 scripts/install.sh scripts/install.ps1; do
+            [ -f "$f" ] || continue
+            if LC_ALL=C grep -nP '[^\x00-\x7F]' "$f"; then
+              echo "^ $f contains non-ASCII characters" >&2
+              status=1
+            fi
+          done
+          exit $status
+
       - uses: dtolnay/rust-toolchain@1.95.0
 
       - uses: taiki-e/install-action@nextest

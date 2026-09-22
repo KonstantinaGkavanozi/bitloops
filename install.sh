@@ -181,7 +181,7 @@ main() {
 
   cat <<EOF
 
-Next steps — open a NEW terminal, then:
+Next steps - open a NEW terminal, then:
 
   cd /path/to/your/repo
   ${BIN_NAME} init              # tick every agent you use
