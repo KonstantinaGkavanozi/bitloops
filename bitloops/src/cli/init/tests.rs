@@ -1424,131 +1424,143 @@ fn init_summary_embeddings_mode_on_uses_existing_embeddings_provider_without_pro
 
 #[test]
 fn init_summary_embeddings_mode_on_fails_without_provider_in_noninteractive_mode() {
-    let repo = TempDir::new().expect("repo");
-    setup_git_repo(&repo);
-    let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
-    crate::config::settings::set_repo_semantic_embedding_policy(
-        &local_policy_path,
-        &crate::config::RepoSemanticEmbeddingPolicy {
-            present: true,
-            summary_mode: Some(crate::config::SemanticSummaryMode::Auto),
-            embedding_mode: Some(crate::config::SemanticCloneEmbeddingMode::Off),
-            inference: crate::config::SemanticClonesInferenceBindings {
-                summary_generation: Some("summary_llm".to_string()),
-                code_embeddings: None,
-                summary_embeddings: None,
+    // Exercises the full-mode embeddings path, which archiver-only
+    // (the default) skips entirely.
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
+        let repo = TempDir::new().expect("repo");
+        setup_git_repo(&repo);
+        let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
+        crate::config::settings::set_repo_semantic_embedding_policy(
+            &local_policy_path,
+            &crate::config::RepoSemanticEmbeddingPolicy {
+                present: true,
+                summary_mode: Some(crate::config::SemanticSummaryMode::Auto),
+                embedding_mode: Some(crate::config::SemanticCloneEmbeddingMode::Off),
+                inference: crate::config::SemanticClonesInferenceBindings {
+                    summary_generation: Some("summary_llm".to_string()),
+                    code_embeddings: None,
+                    summary_embeddings: None,
+                },
             },
-        },
-    )
-    .expect("seed summary-only semantic policy");
+        )
+        .expect("seed summary-only semantic policy");
 
-    crate::cli::inference::with_summary_generation_configured_hook(
-        |_| true,
-        || {
-            let mut out = Vec::new();
-            let args = InitArgs {
-                summary_embeddings_mode: Some(crate::cli::init::SummaryEmbeddingsMode::On),
-                ..init_args()
-            };
-            let err = run_with_writer_for_project_root(args, repo.path(), &mut out, None)
-                .expect_err("init should fail");
-            assert!(
-                err.to_string().contains("requires an embeddings provider"),
-                "error should explain that summary embeddings mode on needs a provider"
-            );
-        },
-    );
-}
-
-#[test]
-fn init_summary_embeddings_mode_on_interactive_prompts_for_provider_selection() {
-    let repo = TempDir::new().expect("repo");
-    setup_git_repo(&repo);
-    let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
-    crate::config::settings::set_repo_semantic_embedding_policy(
-        &local_policy_path,
-        &crate::config::RepoSemanticEmbeddingPolicy {
-            present: true,
-            summary_mode: Some(crate::config::SemanticSummaryMode::Auto),
-            embedding_mode: Some(crate::config::SemanticCloneEmbeddingMode::Off),
-            inference: crate::config::SemanticClonesInferenceBindings {
-                summary_generation: Some("summary_llm".to_string()),
-                code_embeddings: None,
-                summary_embeddings: None,
-            },
-        },
-    )
-    .expect("seed summary-only semantic policy");
-
-    crate::cli::inference::with_summary_generation_configured_hook(
-        |_| true,
-        || {
-            crate::cli::telemetry_consent::with_test_tty_override(true, || {
+        crate::cli::inference::with_summary_generation_configured_hook(
+            |_| true,
+            || {
                 let mut out = Vec::new();
-                let mut input = std::io::Cursor::new(b"3\n3\n".to_vec());
-                let runtime = tokio::runtime::Builder::new_current_thread()
-                    .enable_all()
-                    .build()
-                    .expect("runtime");
                 let args = InitArgs {
                     summary_embeddings_mode: Some(crate::cli::init::SummaryEmbeddingsMode::On),
                     ..init_args()
                 };
-                let err = runtime
-                    .block_on(run_with_io_async_for_project_root(
-                        args,
-                        repo.path(),
-                        &mut out,
-                        &mut input,
-                        None,
-                    ))
-                    .expect_err("init should fail when interactive provider selection is skipped");
+                let err = run_with_writer_for_project_root(args, repo.path(), &mut out, None)
+                    .expect_err("init should fail");
                 assert!(
-                    err.to_string().contains("requires an embeddings provider")
-                        || err
-                            .to_string()
-                            .contains("requires selecting an embeddings provider"),
-                    "error should explain explicit on requires selecting a provider"
+                    err.to_string().contains("requires an embeddings provider"),
+                    "error should explain that summary embeddings mode on needs a provider"
                 );
-                let rendered = String::from_utf8(out).expect("utf8 output");
-                assert!(rendered.contains("Configure summary embeddings"));
-            });
-        },
-    );
+            },
+        );
+    });
+}
+
+#[test]
+fn init_summary_embeddings_mode_on_interactive_prompts_for_provider_selection() {
+    // Exercises the full-mode embeddings path, which archiver-only
+    // (the default) skips entirely.
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
+        let repo = TempDir::new().expect("repo");
+        setup_git_repo(&repo);
+        let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
+        crate::config::settings::set_repo_semantic_embedding_policy(
+            &local_policy_path,
+            &crate::config::RepoSemanticEmbeddingPolicy {
+                present: true,
+                summary_mode: Some(crate::config::SemanticSummaryMode::Auto),
+                embedding_mode: Some(crate::config::SemanticCloneEmbeddingMode::Off),
+                inference: crate::config::SemanticClonesInferenceBindings {
+                    summary_generation: Some("summary_llm".to_string()),
+                    code_embeddings: None,
+                    summary_embeddings: None,
+                },
+            },
+        )
+        .expect("seed summary-only semantic policy");
+
+        crate::cli::inference::with_summary_generation_configured_hook(
+            |_| true,
+            || {
+                crate::cli::telemetry_consent::with_test_tty_override(true, || {
+                    let mut out = Vec::new();
+                    let mut input = std::io::Cursor::new(b"3\n3\n".to_vec());
+                    let runtime = tokio::runtime::Builder::new_current_thread()
+                        .enable_all()
+                        .build()
+                        .expect("runtime");
+                    let args = InitArgs {
+                        summary_embeddings_mode: Some(crate::cli::init::SummaryEmbeddingsMode::On),
+                        ..init_args()
+                    };
+                    let err = runtime
+                        .block_on(run_with_io_async_for_project_root(
+                            args,
+                            repo.path(),
+                            &mut out,
+                            &mut input,
+                            None,
+                        ))
+                        .expect_err("init should fail when interactive provider selection is skipped");
+                    assert!(
+                        err.to_string().contains("requires an embeddings provider")
+                            || err
+                                .to_string()
+                                .contains("requires selecting an embeddings provider"),
+                        "error should explain explicit on requires selecting a provider"
+                    );
+                    let rendered = String::from_utf8(out).expect("utf8 output");
+                    assert!(rendered.contains("Configure summary embeddings"));
+                });
+            },
+        );
+    });
 }
 
 #[test]
 fn init_summary_embeddings_mode_on_fails_when_summaries_are_not_enabled() {
-    let repo = TempDir::new().expect("repo");
-    setup_git_repo(&repo);
-    let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
-    crate::config::settings::set_repo_semantic_embedding_policy(
-        &local_policy_path,
-        &crate::config::RepoSemanticEmbeddingPolicy {
-            present: true,
-            summary_mode: Some(crate::config::SemanticSummaryMode::Off),
-            embedding_mode: Some(crate::config::SemanticCloneEmbeddingMode::SemanticAwareOnce),
-            inference: crate::config::SemanticClonesInferenceBindings {
-                summary_generation: None,
-                code_embeddings: Some("platform_code".to_string()),
-                summary_embeddings: None,
+    // Exercises the full-mode embeddings path, which archiver-only
+    // (the default) skips entirely.
+    with_process_state(None, &[(FULL_CLI_ENV, Some("1"))], || {
+        let repo = TempDir::new().expect("repo");
+        setup_git_repo(&repo);
+        let local_policy_path = repo.path().join(crate::config::REPO_POLICY_LOCAL_FILE_NAME);
+        crate::config::settings::set_repo_semantic_embedding_policy(
+            &local_policy_path,
+            &crate::config::RepoSemanticEmbeddingPolicy {
+                present: true,
+                summary_mode: Some(crate::config::SemanticSummaryMode::Off),
+                embedding_mode: Some(crate::config::SemanticCloneEmbeddingMode::SemanticAwareOnce),
+                inference: crate::config::SemanticClonesInferenceBindings {
+                    summary_generation: None,
+                    code_embeddings: Some("platform_code".to_string()),
+                    summary_embeddings: None,
+                },
             },
-        },
-    )
-    .expect("seed summaries-off semantic policy");
+        )
+        .expect("seed summaries-off semantic policy");
 
-    let mut out = Vec::new();
-    let args = InitArgs {
-        summary_embeddings_mode: Some(crate::cli::init::SummaryEmbeddingsMode::On),
-        ..init_args()
-    };
-    let err = run_with_writer_for_project_root(args, repo.path(), &mut out, None)
-        .expect_err("init should fail");
-    assert!(
-        err.to_string()
-            .contains("requires summaries to be enabled for this init run"),
-        "error should explain summaries must be enabled"
-    );
+        let mut out = Vec::new();
+        let args = InitArgs {
+            summary_embeddings_mode: Some(crate::cli::init::SummaryEmbeddingsMode::On),
+            ..init_args()
+        };
+        let err = run_with_writer_for_project_root(args, repo.path(), &mut out, None)
+            .expect_err("init should fail");
+        assert!(
+            err.to_string()
+                .contains("requires summaries to be enabled for this init run"),
+            "error should explain summaries must be enabled"
+        );
+    });
 }
 
 #[test]

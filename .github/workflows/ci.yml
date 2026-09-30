@@ -108,3 +108,36 @@ jobs:
           name: junit
           path: target/nextest/ci/junit.xml
           if-no-files-found: ignore
+
+  installers:
+    name: Installer scripts parse
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      # shell: powershell is Windows PowerShell 5.1, the version shipped with
+      # Windows and the one participants will actually use. Parsing under
+      # pwsh 7 alone would miss 5.1-specific breakage.
+      - name: Parse install.ps1 under Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $failed = $false
+          foreach ($f in @('install.ps1', 'scripts\install.ps1')) {
+            if (-not (Test-Path $f)) { continue }
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $f), [ref]$null, [ref]$errors)
+            if ($errors) {
+              Write-Host "FAIL $f"
+              $errors | ForEach-Object { Write-Host ("  line {0}: {1}" -f $_.Extent.StartLineNumber, $_.Message) }
+              $failed = $true
+            } else {
+              Write-Host "ok   $f"
+            }
+          }
+          if ($failed) { exit 1 }
+
+      - name: Check install.sh with bash
+        shell: bash
+        run: bash -n install.sh && bash -n scripts/install.sh && echo "ok install.sh"
