@@ -51,6 +51,9 @@ Expand-Archive .\cycloops-x86_64-pc-windows-msvc.zip -DestinationPath $env:USERP
 # 5. Put it on your PATH
 [Environment]::SetEnvironmentVariable('Path',
   [Environment]::GetEnvironmentVariable('Path','User') + ";$env:USERPROFILE\.cycloops\bin", 'User')
+
+# 6. Enable the v2 diff archive, matching the scripted installer
+[Environment]::SetEnvironmentVariable('BITLOOPS_CODE_EXPORT_V2', '1', 'User')
 ```
 
 Step 3 is the one that matters. A zip downloaded through a browser tags every
@@ -64,7 +67,7 @@ because code signing needs a certificate this project does not have. Choose
 **More info** then **Run anyway** only after step 2 has matched - the
 checksum is what tells you the file is the one we published.
 
-The installer downloads the latest release for your platform, checks it against the published SHA-256, and puts `cycloops` on your PATH. Telemetry is off in the build itself, so the installer sets nothing for it. On Windows it also installs `duckdb.dll` next to the binary; keep the two together.
+The installer downloads the latest release for your platform, checks it against the published SHA-256, puts `cycloops` on your PATH, and enables both v1 snapshots and v2 diff records. Telemetry is off in the build itself, so the installer sets nothing for it. On Windows it also installs `duckdb.dll` next to the binary; keep the two together.
 
 Then, in a **new** terminal:
 
@@ -105,7 +108,8 @@ Run `cycloops --version` and note what it prints. For a study, record that strin
 
 ## What it produces
 
-One JSON file per changed file, per turn:
+The backwards-compatible v1 archive writes one full-file JSON snapshot per
+changed file, per turn:
 
 ```
 <export root>/<repo folder name>/<path of the file inside the repo>/<timestamp>__<filename>.json
@@ -126,16 +130,35 @@ Each file contains:
 }
 ```
 
+The installer also enables v2 under:
+
+```
+<export root>/v2/<repo folder name>/<path of the file inside the repo>/<timestamp>__<filename>.json
+```
+
+V2 records contain session-local unified diff hunks plus session and turn IDs,
+step numbers, timestamps, change types, model context, available token usage,
+and the complete current file. Step 0 captures the original file without a
+diff. Step 1 captures the first change, and every later step compares against
+the preceding step in that session. They cover new, modified, and deleted
+files; a deletion stores `current_file` as `null`.
+
 Behaviour worth knowing:
 
-- Only files that were **created or modified** are saved. Deleted files are not.
-- The **whole file** is saved, not a diff.
+- V1 saves the **whole contents** of created or modified files; it does not
+  record deletions.
+- V2 saves incremental per-session diff hunks for created, modified, and
+  deleted files, plus the complete file state after every step.
 - A file is saved again only when its content **differs from its newest archived copy**. Bitloops reports every file that is still uncommitted at the end of each turn, so without this check the same unchanged files would be re-saved every turn. If a file changes and later goes back to an older version, that counts as a change and is saved again.
 - Each save gets its own timestamp, so older versions of a file are kept next to the newer ones.
 - Files that can't be read as text (binaries, files removed again) are silently skipped.
 - Archiving never blocks or fails the agent's turn. If a write fails, that file is skipped and nothing is reported.
 - If the model name cannot be worked out, `"model"` is `"unknown"`.
-- There is **no ignore list**. A changed `.env` or key file is archived like any other file, in plain text.
+- Markdown files with a `.md` extension (case-insensitive) are not archived.
+- Files and directories with a dot-prefixed path component are not archived,
+  including `.matrixx/`, `.gemini/`, `.codex/`, `.env`, and `.gitignore`.
+- Apart from those built-in exclusions, there is **no configurable ignore
+  list**. Visible key or secret files are archived like any other text file.
 
 That last point matters if anyone outside the team runs this on their own repositories. Say so in your consent material, or add a denylist before handing the tool out.
 
@@ -163,6 +186,7 @@ If `init` reports success but turns are not archived, open
 | Variable | Effect |
 |---|---|
 | `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default: `~/Desktop/cycloops-code` |
+| `BITLOOPS_CODE_EXPORT_V2` | `1` writes v2 diff records in addition to v1 snapshots. The installers set this automatically. |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off. It is on by default. |
 | `BITLOOPS_CODE_EXPORT_TRACE` | Any non-empty value makes the archiver print to stderr which files it saw and why each was saved or skipped. For troubleshooting. |
 | `CYCLOOPS_FULL_CLI` | Unset by default, which means archive turns and nothing else: no daemon, no database, no sync or ingest, and `init` asks only which agents to hook. Set it to run the full Bitloops pipeline. |
@@ -170,7 +194,7 @@ If `init` reports success but turns are not archived, open
 
 **Where to set them.** At the end of each agent turn, the `cycloops hooks ...` command that your agent launches archives the changed files itself. It needs neither the daemon nor the database. It also queues the turn for the daemon, which archives too but skips anything the hook already saved with the same content. So the variables must be set in the environment of the **agent** — the terminal or app you start Claude Code, Cursor, etc. from — not just any shell. If you run the daemon, restart it after changing the variables, because a running daemon keeps using the old ones.
 
-The installer writes `BITLOOPS_CODE_EXPORT_DIR` to your shell profile on macOS/Linux, or to your user environment on Windows, if you passed one. To set the export directory afterwards:
+The installer enables `BITLOOPS_CODE_EXPORT_V2=1` and writes `BITLOOPS_CODE_EXPORT_DIR` if you passed one. On macOS/Linux these go in your shell profiles; on Windows they are user environment variables. To set the export directory afterwards:
 
 - **Windows (PowerShell), permanent:**
   ```powershell

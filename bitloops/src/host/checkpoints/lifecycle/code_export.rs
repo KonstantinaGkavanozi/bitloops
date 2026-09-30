@@ -22,11 +22,25 @@
 //! Enabled by default. Disable with `BITLOOPS_CODE_EXPORT_DISABLE` set to any
 //! non-empty value. Override the destination directory with
 //! `BITLOOPS_CODE_EXPORT_DIR`; it defaults to `~/Desktop/cycloops-code`.
+//!
+//! Set `BITLOOPS_CODE_EXPORT_V2=1` to additionally archive HEAD-relative
+//! unified diff snippets under `<export_root>/v2/<project>/`. Each record
+//! includes session/turn identifiers, timestamp and available token usage.
+//! Hunks use three context lines; old/new line counts describe whole files.
+//! Deleted files retain their HEAD content as removal hunks. Restoring a
+//! modified file requires the corresponding HEAD version as a base.
+
+#[path = "code_export_v2.rs"]
+mod v2;
+pub(crate) use v2::export_turn_code_v2;
+#[cfg(test)]
+#[path = "code_export_v2_tests.rs"]
+mod v2_tests;
 
 use std::collections::HashSet;
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const ENV_DISABLE: &str = "BITLOOPS_CODE_EXPORT_DISABLE";
@@ -41,9 +55,21 @@ fn is_disabled() -> bool {
         .unwrap_or(false)
 }
 
+fn is_markdown_path(path: &Path) -> bool {
+    path.extension()
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("md"))
+}
+
+fn is_hidden_path(path: &Path) -> bool {
+    path.components().any(|component| {
+        matches!(component, Component::Normal(name) if name.to_string_lossy().starts_with('.'))
+    })
+}
+
 /// Prints archiver decisions to stderr when `BITLOOPS_CODE_EXPORT_TRACE` is set,
 /// since the archiver otherwise skips files without saying why.
 pub(crate) fn trace(message: &str) {
+    log::debug!(target: "code_export", "{message}");
     if env::var_os(ENV_TRACE).is_some_and(|value| !value.is_empty()) {
         eprintln!("[cycloops-code-export] {message}");
     }
@@ -80,12 +106,14 @@ pub(crate) fn export_turn_code_from_hook(
     repo_root: &Path,
     model_hint: &str,
     transcript_path: &str,
+    session_id: &str,
+    turn_id: Option<&str>,
 ) {
     if is_disabled() {
         trace("disabled by BITLOOPS_CODE_EXPORT_DISABLE");
         return;
     }
-    let (modified, new_files, _deleted) =
+    let (modified, new_files, deleted) =
         super::git_workspace::detect_file_changes_for_turn_end(repo_root, None);
     let changed_files: Vec<String> = modified.into_iter().chain(new_files).collect();
     trace(&format!(
@@ -94,7 +122,7 @@ pub(crate) fn export_turn_code_from_hook(
         changed_files.len(),
         changed_files
     ));
-    if changed_files.is_empty() {
+    if changed_files.is_empty() && deleted.is_empty() {
         return;
     }
     let transcript = fs::read(transcript_path).unwrap_or_default();
@@ -103,6 +131,19 @@ pub(crate) fn export_turn_code_from_hook(
         &transcript,
     );
     export_turn_code(repo_root, &model, &changed_files);
+    let turn_id = turn_id
+        .filter(|id| !id.trim().is_empty())
+        .map(str::to_owned)
+        .unwrap_or_else(super::time_and_ids::generate_lifecycle_turn_id);
+    v2::export_turn_code_v2_from_hook(
+        repo_root,
+        &model,
+        session_id,
+        &turn_id,
+        &super::time_and_ids::now_rfc3339(),
+        &changed_files,
+        &deleted,
+    );
 }
 
 /// Parses `{secs}-{micros}__{file_name}.json` back into its timestamp, or
@@ -170,6 +211,16 @@ pub(crate) fn export_turn_code(repo_root: &Path, model: &str, changed_files: &[S
         }
 
         let rel = Path::new(rel_path);
+        if is_hidden_path(rel) {
+            trace(&format!(
+                "skip {rel_path}: dot-prefixed files and directories are not archived"
+            ));
+            continue;
+        }
+        if is_markdown_path(rel) {
+            trace(&format!("skip {rel_path}: Markdown files are not archived"));
+            continue;
+        }
         let file_name = match rel.file_name() {
             Some(name) => name.to_string_lossy().to_string(),
             None => continue,
@@ -223,7 +274,7 @@ mod tests {
 
     // Environment variables are process-global, so serialize tests that
     // touch BITLOOPS_CODE_EXPORT_DIR / BITLOOPS_CODE_EXPORT_DISABLE.
-    fn env_lock() -> &'static Mutex<()> {
+    pub(super) fn env_lock() -> &'static Mutex<()> {
         static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
         LOCK.get_or_init(|| Mutex::new(()))
     }
@@ -316,6 +367,70 @@ mod tests {
         unsafe {
             env::remove_var(ENV_DIR);
             env::remove_var(ENV_DISABLE);
+        }
+        let _ = fs::remove_dir_all(&repo_root);
+    }
+
+    #[test]
+    fn markdown_files_are_not_archived() {
+        let _guard = env_lock().lock().unwrap();
+
+        let repo_root = unique_temp_dir("repo-markdown");
+        fs::create_dir_all(&repo_root).unwrap();
+        fs::write(repo_root.join("README.md"), "# README\n").unwrap();
+        fs::write(repo_root.join("NOTES.MD"), "notes\n").unwrap();
+
+        let export_dir = unique_temp_dir("export-markdown");
+        unsafe {
+            env::set_var(ENV_DIR, &export_dir);
+            env::remove_var(ENV_DISABLE);
+        }
+
+        export_turn_code(
+            &repo_root,
+            "test-model",
+            &["README.md".to_string(), "NOTES.MD".to_string()],
+        );
+
+        assert!(!export_dir.exists());
+
+        unsafe {
+            env::remove_var(ENV_DIR);
+        }
+        let _ = fs::remove_dir_all(&repo_root);
+    }
+
+    #[test]
+    fn dot_prefixed_files_and_directories_are_not_archived() {
+        let _guard = env_lock().lock().unwrap();
+
+        let repo_root = unique_temp_dir("repo-hidden");
+        fs::create_dir_all(repo_root.join(".matrixx")).unwrap();
+        fs::create_dir_all(repo_root.join("nested/.gemini")).unwrap();
+        fs::write(repo_root.join(".env"), "SECRET=value\n").unwrap();
+        fs::write(repo_root.join(".matrixx/plan.json"), "{}\n").unwrap();
+        fs::write(repo_root.join("nested/.gemini/settings.json"), "{}\n").unwrap();
+
+        let export_dir = unique_temp_dir("export-hidden");
+        unsafe {
+            env::set_var(ENV_DIR, &export_dir);
+            env::remove_var(ENV_DISABLE);
+        }
+
+        export_turn_code(
+            &repo_root,
+            "test-model",
+            &[
+                ".env".to_string(),
+                ".matrixx/plan.json".to_string(),
+                "nested/.gemini/settings.json".to_string(),
+            ],
+        );
+
+        assert!(!export_dir.exists());
+
+        unsafe {
+            env::remove_var(ENV_DIR);
         }
         let _ = fs::remove_dir_all(&repo_root);
     }

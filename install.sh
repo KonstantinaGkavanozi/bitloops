@@ -157,23 +157,29 @@ main() {
   fi
 
   # --- environment ---
-  # Nothing is written for archiver-only mode: it is the binary's default, so
-  # it holds however the CLI is launched. Telemetry likewise reports nothing
-  # unless BITLOOPS_TELEMETRY_OPTIN is set explicitly.
+  # Archiver-only mode is the binary default. The installer enables the richer
+  # v2 archive in addition to the backwards-compatible v1 snapshots.
   if [ -z "${CYCLOOPS_NO_PATH:-}" ]; then
-    lines=""
-    [ -n "${CYCLOOPS_FULL_CLI:-}" ] && lines="export CYCLOOPS_FULL_CLI=1"
-    if [ -n "${CYCLOOPS_EXPORT_DIR:-}" ]; then
-      lines="${lines}${lines:+
+    for rc in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.profile"; do
+      [ -f "$rc" ] || continue
+      lines=""
+      if ! grep -Eqs '^[[:space:]]*(export[[:space:]]+)?BITLOOPS_CODE_EXPORT_V2=' "$rc"; then
+        lines="export BITLOOPS_CODE_EXPORT_V2=1"
+      fi
+      if [ -n "${CYCLOOPS_FULL_CLI:-}" ] \
+        && ! grep -Eqs '^[[:space:]]*(export[[:space:]]+)?CYCLOOPS_FULL_CLI=' "$rc"; then
+        lines="${lines}${lines:+
+}export CYCLOOPS_FULL_CLI=1"
+      fi
+      if [ -n "${CYCLOOPS_EXPORT_DIR:-}" ] \
+        && ! grep -Eqs '^[[:space:]]*(export[[:space:]]+)?BITLOOPS_CODE_EXPORT_DIR=' "$rc"; then
+        lines="${lines}${lines:+
 }export BITLOOPS_CODE_EXPORT_DIR=\"${CYCLOOPS_EXPORT_DIR}\""
-    fi
-    if [ -n "$lines" ]; then
-      for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
-        [ -f "$rc" ] || continue
-        grep -Fqs "CYCLOOPS_FULL_CLI\|BITLOOPS_CODE_EXPORT_DIR" "$rc" && continue
+      fi
+      if [ -n "$lines" ]; then
         printf '\n# added by %s installer\n%s\n' "$BIN_NAME" "$lines" >> "$rc"
-      done
-    fi
+      fi
+    done
   fi
 
   printf '\nInstalled to %s\n' "$dest"
@@ -191,11 +197,13 @@ asks nothing beyond which agents to hook. Set CYCLOOPS_FULL_CLI=1 for the
 full Bitloops pipeline.
 
 Archives are written to \${BITLOOPS_CODE_EXPORT_DIR:-~/Desktop/cycloops-code}/.
+The installer enables both v1 snapshots and v2 diff records by default.
 Set BITLOOPS_CODE_EXPORT_DIR in the environment of the terminal or app you
 launch your agent from, not just any shell.
 
-Note: there is no ignore list. A changed .env or key file is archived in
-plain text. Keep the export folder somewhere private.
+Markdown and dot-prefixed paths such as .matrixx/, .gemini/, and .env are
+excluded. Other visible key or secret files are archived in plain text, so
+keep the export folder somewhere private.
 EOF
 }
 

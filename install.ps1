@@ -125,7 +125,7 @@ try {
         try {
             Move-Item $exeDest "$exeDest.bak" -Force
         } catch {
-            Die "Could not replace $exeDest: a daemon is probably still running. Stop it (``$BinName daemon stop``) and re-run."
+            Die "Could not replace ${exeDest} - a daemon is probably still running. Stop it (``$BinName daemon stop``) and re-run."
         }
     }
 
@@ -141,6 +141,12 @@ try {
     Unblock-File -Path (Join-Path $InstallDir 'duckdb.dll') -ErrorAction SilentlyContinue
 
     # --- 5. PATH and research defaults ---
+    # New installs produce both the full-file v1 snapshots and the richer v2
+    # diff records. This is a user variable so hooks launched by editors and
+    # other desktop applications inherit it after those applications restart.
+    [Environment]::SetEnvironmentVariable('BITLOOPS_CODE_EXPORT_V2', '1', 'User')
+    Info "Enabled v2 code exports (BITLOOPS_CODE_EXPORT_V2=1)"
+
     if (-not $NoPath) {
         $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
         if ($userPath -notlike "*$InstallDir*") {
@@ -177,11 +183,13 @@ asks nothing beyond which agents to hook. Re-run with -FullCli for the full
 Bitloops pipeline.
 
 Archives are written to `$env:BITLOOPS_CODE_EXPORT_DIR, default %USERPROFILE%\Desktop\cycloops-code.
+The installer enables both v1 snapshots and v2 diff records by default.
 If OneDrive has redirected your Desktop, set BITLOOPS_CODE_EXPORT_DIR explicitly.
 Set it for the terminal or app you launch your agent from, not just any shell.
 
-Note: there is no ignore list. A changed .env or key file is archived in
-plain text. Keep the export folder somewhere private.
+Markdown and dot-prefixed paths such as .matrixx/, .gemini/, and .env are
+excluded. Other visible key or secret files are archived in plain text, so
+keep the export folder somewhere private.
 "@
 }
 finally {

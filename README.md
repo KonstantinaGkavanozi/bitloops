@@ -52,6 +52,9 @@ Expand-Archive .\cycloops-x86_64-pc-windows-msvc.zip -DestinationPath $env:USERP
 # 5. Put it on your PATH
 [Environment]::SetEnvironmentVariable('Path',
   [Environment]::GetEnvironmentVariable('Path','User') + ";$env:USERPROFILE\.cycloops\bin", 'User')
+
+# 6. Enable the v2 diff archive, matching the scripted installer
+[Environment]::SetEnvironmentVariable('BITLOOPS_CODE_EXPORT_V2', '1', 'User')
 ```
 
 Step 3 is the one that matters. A zip downloaded through a browser tags every
@@ -82,7 +85,7 @@ Tick the agents you use. That's the whole setup — there is no daemon to keep
 running.
 
 Now work as usual. At the end of each agent turn, files land in
-`~/Desktop/cycloops-code/<repo>/...` as JSON:
+`~/Desktop/cycloops-code/<repo>/...` as backwards-compatible v1 JSON:
 
 ```json
 {
@@ -90,6 +93,12 @@ Now work as usual. At the end of each agent turn, files land in
   "code": "...the full contents of the file after the turn..."
 }
 ```
+
+The installer also enables richer v2 records under
+`~/Desktop/cycloops-code/v2/<repo>/...`. These contain session-local,
+step-by-step diff hunks, the complete file after each step, session and turn
+IDs, timestamps, change types, and available token usage. Existing v1
+consumers continue to work because both formats are written.
 
 To put them somewhere else, set `BITLOOPS_CODE_EXPORT_DIR` — in the
 environment of the terminal or app you launch your agent from, not just any
@@ -102,8 +111,11 @@ CYCLOOPS_EXPORT_DIR="$HOME/research-archive" \
 
 ## What gets saved
 
-- Only files **created or modified** during the turn. Deletions are not recorded.
-- The **whole file**, not a diff.
+- V1 records the whole contents of files **created or modified** during the
+  turn; it does not record deletions.
+- V2 records step 0 as the original file, then records each later modification
+  as a diff from the preceding step in that session. Each record also includes
+  the complete current file for debugging.
 - A file is written again only when its content differs from its newest
   archived copy, so an unchanged file is not re-saved every turn.
 - Each save carries its own timestamp, so earlier versions stay alongside later
@@ -111,15 +123,17 @@ CYCLOOPS_EXPORT_DIR="$HOME/research-archive" \
 - Unreadable files (binaries, files removed again) are skipped silently.
 - Archiving never blocks or fails an agent turn.
 
-**There is no ignore list.** A changed `.env` or key file is archived like any
-other file, in plain text. If people outside your team will run this on their
-own repositories, say so in your consent material, or add a denylist first.
+Markdown and dot-prefixed paths such as `.matrixx/`, `.gemini/`, and `.env` are
+excluded. There is no configurable ignore list beyond those exclusions, so
+visible key or secret files are still archived as plain text. Keep the export
+folder private and describe this behavior in consent material.
 
 ## Settings
 
 | Variable | Effect |
 |---|---|
 | `BITLOOPS_CODE_EXPORT_DIR` | Where to write the archive. Default `~/Desktop/cycloops-code` |
+| `BITLOOPS_CODE_EXPORT_V2` | `1` writes v2 diff records in addition to v1 snapshots. The installers set this automatically. |
 | `BITLOOPS_CODE_EXPORT_DISABLE` | Any non-empty value turns archiving off |
 | `BITLOOPS_CODE_EXPORT_TRACE` | Print to stderr which files were seen and why each was saved or skipped |
 | `CYCLOOPS_FULL_CLI` | Unset by default. Set it to run the full Bitloops pipeline — see below |

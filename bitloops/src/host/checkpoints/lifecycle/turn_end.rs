@@ -248,6 +248,16 @@ pub(crate) fn handle_lifecycle_turn_end_for_repo_with_workspace_snapshot(
         .cloned()
         .collect();
     super::code_export::export_turn_code(repo_root, &model, &code_export_files);
+    super::code_export::export_turn_code_v2(
+        repo_root,
+        &model,
+        &session_id,
+        &turn_id,
+        &interaction_now,
+        ctx.token_usage.as_ref(),
+        &code_export_files,
+        &ctx.deleted_files,
+    );
 
     if let Some(spool) = resolve_interaction_spool(repo_root) {
         let (actor_id, actor_name, actor_email, actor_source) = interaction_actor_identity();

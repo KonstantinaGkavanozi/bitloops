@@ -399,7 +399,11 @@ fn find_most_recent_session_id(repo_root: &Path) -> String {
 }
 
 fn init_hook_logging(repo_root: &Path) {
-    let session_id = find_most_recent_session_id(repo_root);
+    let session_id = if crate::utils::research_mode::archiver_only() {
+        String::new()
+    } else {
+        find_most_recent_session_id(repo_root)
+    };
     let _ = logging::init(&session_id);
 }
 
@@ -770,10 +774,26 @@ fn archive_code_for_turn_end_hook(
     if event.event_type.as_ref() != Some(&LifecycleEventType::TurnEnd) {
         return;
     }
+    // Archiver-only hooks must not initialize the session database. The exporter
+    // generates an ID when there is no lifecycle session state to consult.
+    let turn_id = if crate::utils::research_mode::archiver_only()
+        || std::env::var("BITLOOPS_CODE_EXPORT_V2").as_deref() != Ok("1")
+    {
+        None
+    } else {
+        crate::host::checkpoints::session::create_session_backend_or_local(repo_root)
+            .load_session(&event.session_id)
+            .ok()
+            .flatten()
+            .map(|state| state.turn_id)
+            .filter(|value| !value.trim().is_empty())
+    };
     crate::host::checkpoints::lifecycle::export_turn_code_from_hook(
         repo_root,
         &event.model,
         &event.session_ref,
+        &event.session_id,
+        turn_id.as_deref(),
     );
 }
 
@@ -875,7 +895,17 @@ pub async fn run(args: HooksArgs, strategy_registry: &StrategyRegistry) -> Resul
                 result.is_ok(),
                 started.elapsed().as_millis(),
             );
-            result.and_then(|outcome| emit_hook_stdout_if_present(&outcome))
+            result.and_then(|outcome| {
+                if hook_name == crate::adapters::agents::codex::lifecycle::HOOK_NAME_STOP
+                    && outcome.stdout.is_none()
+                {
+                    // Codex requires JSON on stdout for a successful Stop hook.
+                    println!("{{}}");
+                    Ok(())
+                } else {
+                    emit_hook_stdout_if_present(&outcome)
+                }
+            })
         }
         HooksAgent::Gemini(gemini) => {
             let hook_name = gemini.verb.hook_name();

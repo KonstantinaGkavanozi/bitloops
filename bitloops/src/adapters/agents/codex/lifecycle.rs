@@ -48,10 +48,12 @@ fn resolve_transcript_ref_with_repo(
         return String::new();
     }
 
-    if let Some(repo_root) = repo_root
-        && let Some(path) = resolve_transcript_ref_from_state_for_repo(session_id, repo_root)
-    {
-        return path;
+    if !crate::utils::research_mode::archiver_only() {
+        if let Some(repo_root) = repo_root
+            && let Some(path) = resolve_transcript_ref_from_state_for_repo(session_id, repo_root)
+        {
+            return path;
+        }
     }
 
     let repo_path = repo_root
