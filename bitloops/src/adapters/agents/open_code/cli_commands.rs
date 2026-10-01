@@ -113,7 +113,8 @@ fn combined_output_string(output: &Output) -> String {
     }
 }
 
-#[cfg(test)]
+// These tests construct Unix wait statuses and invoke /bin/sh.
+#[cfg(all(test, unix))]
 mod tests {
     use std::os::unix::process::ExitStatusExt;
     use std::process::ExitStatus;

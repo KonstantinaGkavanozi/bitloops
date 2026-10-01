@@ -144,6 +144,10 @@ impl LogSink {
     }
 }
 
+pub(super) fn is_v2_enabled() -> bool {
+    std::env::var("BITLOOPS_CODE_EXPORT_V2").as_deref() == Ok("1")
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn export_turn_code_v2(
     repo_root: &Path,
@@ -203,7 +207,7 @@ fn export(
     deleted_files: &[String],
     sink: LogSink,
 ) {
-    if is_disabled() || std::env::var("BITLOOPS_CODE_EXPORT_V2").as_deref() != Ok("1") {
+    if is_disabled() || !is_v2_enabled() {
         return;
     }
     let project = repo_root
@@ -284,11 +288,27 @@ fn export(
                 return Ok(());
             }
 
+            // Several agents can edit the same working tree. The newest copy from any
+            // session is the true "before" for this change: diffing against this
+            // session's own last step would credit it with edits another agent made
+            // in between.
+            let latest_any = latest_archive(&dir, &archive_name, None);
+            if let Some((_, other)) = latest_any.as_ref()
+                && other.current_file == current_file
+            {
+                trace(&format!(
+                    "skip {file}: already archived by session {}",
+                    other.session_id
+                ));
+                return Ok(());
+            }
+
             let (previous_file, step) = if let Some((_, previous)) = session_previous {
-                (previous.current_file, previous.step.saturating_add(1))
+                let base =
+                    latest_any.map_or(previous.current_file, |(_, newest)| newest.current_file);
+                (base, previous.step.saturating_add(1))
             } else {
-                let baseline = if let Some((_, record)) = latest_archive(&dir, &archive_name, None)
-                {
+                let baseline = if let Some((_, record)) = latest_any {
                     record.current_file
                 } else if diff_hunks::head_file_exists(repo_root, file)? {
                     diff_hunks::get_head_content(repo_root, file)?

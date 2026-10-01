@@ -385,9 +385,21 @@ fn io_failure_does_not_prevent_later_files_from_exporting() {
 }
 
 #[test]
-fn v1_and_v2_archives_coexist_without_changing_v1_schema() {
+fn v2_enabled_writes_only_v2_records() {
     let _guard = super::tests::env_lock().lock().unwrap();
     let f = Fixture::new();
+    f.write("a.rs", "hello\n");
+    export_turn_code(&f.repo, "test-model", &["a.rs".into()]);
+    f.export(&["a.rs"], &[]);
+    assert!(!f.output.join("project").exists());
+    assert_eq!(f.records("").len(), 2);
+}
+
+#[test]
+fn v2_disabled_writes_only_v1_snapshots() {
+    let _guard = super::tests::env_lock().lock().unwrap();
+    let f = Fixture::new();
+    unsafe { env::remove_var(V2_ENV) };
     f.write("a.rs", "hello\n");
     export_turn_code(&f.repo, "test-model", &["a.rs".into()]);
     f.export(&["a.rs"], &[]);
@@ -399,7 +411,7 @@ fn v1_and_v2_archives_coexist_without_changing_v1_schema() {
         record,
         serde_json::json!({"model": "test-model", "code": "hello\n"})
     );
-    assert_eq!(f.records("").len(), 2);
+    assert!(!f.output.join("v2").exists());
 }
 
 #[test]
@@ -505,4 +517,56 @@ fn hook_generates_turn_id_when_missing() {
     assert_eq!(turn_id.len(), 12);
     assert!(!turn_id.trim().is_empty());
     assert_eq!(records[1]["snippets"][0]["change_type"], "new");
+}
+
+#[test]
+fn change_archived_by_another_session_is_not_credited_to_a_later_session() {
+    let _guard = super::tests::env_lock().lock().unwrap();
+    let f = Fixture::new();
+    let files = vec!["a.rs".to_string()];
+    let export_as = |model: &str, session: &str| {
+        export_turn_code_v2(
+            &f.repo,
+            model,
+            session,
+            "turn",
+            TIMESTAMP,
+            None,
+            &files,
+            &[],
+        );
+    };
+
+    f.write("a.rs", "one\n");
+    export_as("claude", "claude-session");
+
+    // A second agent edits the same file and its turn ends first.
+    f.write("a.rs", "one\ntwo\n");
+    export_as("gpt", "gpt-session");
+
+    // The first agent's turn ends again; the file is still uncommitted but this
+    // agent did not change it, so nothing may be recorded under its model.
+    export_as("claude", "claude-session");
+
+    // Its own later edit is diffed against the newest copy, not its stale step.
+    f.write("a.rs", "one\ntwo\nthree\n");
+    export_as("claude", "claude-session");
+
+    let records = f.records("");
+    let by_model = |name: &str| {
+        records
+            .iter()
+            .filter(|record| record["model"]["name"] == name)
+            .count()
+    };
+    assert_eq!(by_model("gpt"), 2);
+    assert_eq!(by_model("claude"), 3);
+    let last = records
+        .iter()
+        .filter(|record| record["model"]["name"] == "claude")
+        .max_by_key(|record| record["step"].as_u64().unwrap())
+        .unwrap();
+    let hunk = last["snippets"][0]["diff_hunk"].as_str().unwrap();
+    assert!(hunk.contains("+three"));
+    assert!(!hunk.contains("+two"));
 }

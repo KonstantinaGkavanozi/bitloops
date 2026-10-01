@@ -738,16 +738,16 @@ fn kill_process(pid: u32) {
 fn process_is_running(pid: u32) -> bool {
     #[cfg(windows)]
     {
-        Command::new("cmd")
-            .args([
-                "/C",
-                &format!("tasklist /FI \"PID eq {pid}\" | findstr {pid}"),
-            ])
+        // Call `tasklist` directly; going through `cmd /C` mangles the filter's quotes.
+        Command::new("tasklist")
+            .args(["/FI", &format!("PID eq {pid}"), "/NH", "/FO", "CSV"])
             .stdin(Stdio::null())
-            .stdout(Stdio::null())
             .stderr(Stdio::null())
-            .status()
-            .map(|status| status.success())
+            .output()
+            .map(|output| {
+                output.status.success()
+                    && String::from_utf8_lossy(&output.stdout).contains(&format!(",\"{pid}\","))
+            })
             .unwrap_or(false)
     }
 

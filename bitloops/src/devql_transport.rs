@@ -87,6 +87,10 @@ pub(crate) fn discover_slim_cli_repo_scope(cwd: Option<&Path>) -> Result<SlimCli
     };
     let cwd = cwd.canonicalize().unwrap_or_else(|_| cwd.clone());
     let repo_root = resolve_repo_root_from_cwd(&cwd)?;
+    // On Windows, `canonicalize` gives `cwd` an extended-path prefix while
+    // Git commonly prints the same path with forward slashes. Canonicalize
+    // both sides before `strip_prefix` compares them.
+    let repo_root = repo_root.canonicalize().unwrap_or(repo_root);
     let repo = resolve_repo_identity(&repo_root)?;
     let branch_name = resolve_active_branch_name(&repo_root)?;
     let project_path = resolve_project_path(&repo_root, &cwd)?;
@@ -340,13 +344,27 @@ fn resolve_active_branch_name(repo_root: &Path) -> Result<String> {
 }
 
 fn resolve_project_path(repo_root: &Path, cwd: &Path) -> Result<Option<String>> {
-    let relative = cwd.strip_prefix(repo_root).with_context(|| {
-        format!(
-            "current directory {} is not inside repository {}",
-            cwd.display(),
-            repo_root.display()
-        )
-    })?;
+    // On Windows `cwd` may be in verbatim form (`\\?\C:\...`) while git reports the root as
+    // `C:/...`; those never compare as prefixes, so fall back to canonicalizing both sides.
+    let relative = match cwd.strip_prefix(repo_root) {
+        Ok(relative) => relative.to_path_buf(),
+        Err(_) => {
+            let canonical_cwd = cwd.canonicalize().unwrap_or_else(|_| cwd.to_path_buf());
+            let canonical_root = repo_root
+                .canonicalize()
+                .unwrap_or_else(|_| repo_root.to_path_buf());
+            canonical_cwd
+                .strip_prefix(&canonical_root)
+                .map(Path::to_path_buf)
+                .with_context(|| {
+                    format!(
+                        "current directory {} is not inside repository {}",
+                        cwd.display(),
+                        repo_root.display()
+                    )
+                })?
+        }
+    };
     if relative.as_os_str().is_empty() {
         return Ok(None);
     }

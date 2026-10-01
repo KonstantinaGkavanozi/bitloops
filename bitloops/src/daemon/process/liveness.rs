@@ -3,16 +3,18 @@ use super::*;
 pub(in crate::daemon) fn process_is_running(pid: u32) -> Result<bool> {
     #[cfg(windows)]
     {
-        Ok(Command::new("cmd")
-            .args([
-                "/C",
-                &format!("tasklist /FI \"PID eq {pid}\" | findstr {pid}"),
-            ])
+        // Invoke `tasklist` directly: wrapping it in `cmd /C` makes Rust escape the filter's
+        // quotes as `\"`, which cmd.exe does not understand, so live processes looked dead.
+        let output = Command::new("tasklist")
+            .args(["/FI", &format!("PID eq {pid}"), "/NH", "/FO", "CSV"])
             .stdin(Stdio::null())
-            .stdout(Stdio::null())
             .stderr(Stdio::null())
-            .status()
-            .map(|status| status.success())
+            .output();
+        Ok(output
+            .map(|output| {
+                output.status.success()
+                    && String::from_utf8_lossy(&output.stdout).contains(&format!(",\"{pid}\","))
+            })
             .unwrap_or(false))
     }
 

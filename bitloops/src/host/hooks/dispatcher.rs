@@ -771,6 +771,10 @@ fn archive_code_for_turn_end_hook(
             return;
         }
     };
+    if event.event_type.as_ref() == Some(&LifecycleEventType::TurnStart) {
+        crate::host::checkpoints::lifecycle::record_turn_start(repo_root, &event.session_id);
+        return;
+    }
     if event.event_type.as_ref() != Some(&LifecycleEventType::TurnEnd) {
         return;
     }

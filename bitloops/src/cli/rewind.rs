@@ -800,6 +800,7 @@ mod tests {
         let entries = list_checkpoint_tree_entries(repo.path(), &head).expect("list tree entries");
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].path, "src.rs");
+        #[cfg(unix)]
         assert_eq!(entries[0].mode, "100644");
         assert!(!entries[0].hash.is_empty());
     }

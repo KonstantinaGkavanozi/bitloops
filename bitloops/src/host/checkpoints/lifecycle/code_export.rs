@@ -23,8 +23,9 @@
 //! non-empty value. Override the destination directory with
 //! `BITLOOPS_CODE_EXPORT_DIR`; it defaults to `~/Desktop/cycloops-code`.
 //!
-//! Set `BITLOOPS_CODE_EXPORT_V2=1` to additionally archive HEAD-relative
-//! unified diff snippets under `<export_root>/v2/<project>/`. Each record
+//! Set `BITLOOPS_CODE_EXPORT_V2=1` to archive HEAD-relative unified diff
+//! snippets under `<export_root>/v2/<project>/` instead of the v1 snapshots;
+//! only one format is written at a time. Each record
 //! includes session/turn identifiers, timestamp and available token usage.
 //! Hunks use three context lines; old/new line counts describe whole files.
 //! Deleted files retain their HEAD content as removal hunks. Restoring a
@@ -37,7 +38,8 @@ pub(crate) use v2::export_turn_code_v2;
 #[path = "code_export_v2_tests.rs"]
 mod v2_tests;
 
-use std::collections::HashSet;
+use sha2::{Digest, Sha256};
+use std::collections::{BTreeMap, HashSet};
 use std::env;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
@@ -73,6 +75,86 @@ pub(crate) fn trace(message: &str) {
     if env::var_os(ENV_TRACE).is_some_and(|value| !value.is_empty()) {
         eprintln!("[cycloops-code-export] {message}");
     }
+}
+
+/// Content fingerprint of every file that was already uncommitted when a
+/// session's turn began (`None` marks a file that was already deleted).
+type TurnStartBaseline = BTreeMap<String, Option<String>>;
+
+fn file_fingerprint(repo_root: &Path, rel_path: &str) -> Option<String> {
+    let bytes = fs::read(repo_root.join(rel_path)).ok()?;
+    Some(hex::encode(Sha256::digest(bytes)))
+}
+
+fn turn_start_state_path(repo_root: &Path, session_id: &str) -> PathBuf {
+    let project = repo_root
+        .file_name()
+        .map(|name| name.to_string_lossy().to_string())
+        .filter(|name| !name.is_empty())
+        .unwrap_or_else(|| DEFAULT_PROJECT_LABEL.to_string());
+    let session: String = session_id
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+        .collect();
+    export_root()
+        .join(".turn-start")
+        .join(project)
+        .join(format!("{session}.json"))
+}
+
+/// Remembers which files are already uncommitted, and with what content, when a
+/// turn starts. Several agents can share one working tree, and `git status` at
+/// turn end cannot tell whose edits it is looking at; comparing against this
+/// baseline keeps a session from being credited with changes it did not make.
+pub(crate) fn record_turn_start(repo_root: &Path, session_id: &str) {
+    if is_disabled() || session_id.trim().is_empty() {
+        return;
+    }
+    let (modified, new_files, deleted) =
+        super::git_workspace::detect_file_changes_for_turn_end(repo_root, None);
+    let mut baseline = TurnStartBaseline::new();
+    for path in modified.into_iter().chain(new_files) {
+        let fingerprint = file_fingerprint(repo_root, &path);
+        baseline.insert(path, fingerprint);
+    }
+    for path in deleted {
+        baseline.insert(path, None);
+    }
+    let state_path = turn_start_state_path(repo_root, session_id);
+    let written = state_path
+        .parent()
+        .map_or(Ok(()), fs::create_dir_all)
+        .map_err(|err| err.to_string())
+        .and_then(|()| serde_json::to_vec(&baseline).map_err(|err| err.to_string()))
+        .and_then(|bytes| fs::write(&state_path, bytes).map_err(|err| err.to_string()));
+    match written {
+        Ok(()) => trace(&format!(
+            "turn start for session {session_id}: {} file(s) already uncommitted",
+            baseline.len()
+        )),
+        Err(err) => trace(&format!("cannot record turn start baseline: {err}")),
+    }
+}
+
+fn load_turn_start(repo_root: &Path, session_id: &str) -> Option<TurnStartBaseline> {
+    let bytes = fs::read(turn_start_state_path(repo_root, session_id)).ok()?;
+    serde_json::from_slice(&bytes).ok()
+}
+
+/// Keeps the files whose content differs from what the turn started with.
+fn changed_since_turn_start(
+    repo_root: &Path,
+    baseline: &TurnStartBaseline,
+    files: Vec<String>,
+) -> Vec<String> {
+    files
+        .into_iter()
+        .filter(|path| match baseline.get(path) {
+            Some(Some(before)) => file_fingerprint(repo_root, path).as_ref() != Some(before),
+            Some(None) | None => true,
+        })
+        .inspect(|path| trace(&format!("{path}: changed during this turn")))
+        .collect()
 }
 
 fn export_root() -> PathBuf {
@@ -115,7 +197,14 @@ pub(crate) fn export_turn_code_from_hook(
     }
     let (modified, new_files, deleted) =
         super::git_workspace::detect_file_changes_for_turn_end(repo_root, None);
-    let changed_files: Vec<String> = modified.into_iter().chain(new_files).collect();
+    let mut changed_files: Vec<String> = modified.into_iter().chain(new_files).collect();
+    let mut deleted = deleted;
+    if let Some(baseline) = load_turn_start(repo_root, session_id) {
+        changed_files = changed_since_turn_start(repo_root, &baseline, changed_files);
+        deleted.retain(|path| !matches!(baseline.get(path), Some(None)));
+    } else {
+        trace("no turn-start baseline for this session; archiving every uncommitted file");
+    }
     trace(&format!(
         "hook-side archive in {}: {} changed file(s): {:?}",
         repo_root.display(),
@@ -184,6 +273,10 @@ fn latest_archived_code(dest_dir: &Path, file_name: &str) -> Option<String> {
 /// that could disrupt turn-end handling.
 pub(crate) fn export_turn_code(repo_root: &Path, model: &str, changed_files: &[String]) {
     if is_disabled() || changed_files.is_empty() {
+        return;
+    }
+    if v2::is_v2_enabled() {
+        trace("skip v1 snapshots: BITLOOPS_CODE_EXPORT_V2=1 archives v2 records only");
         return;
     }
 
